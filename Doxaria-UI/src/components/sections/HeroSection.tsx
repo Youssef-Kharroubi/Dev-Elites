@@ -1,0 +1,21 @@
+
+export default function HeroSection() {
+    return(
+        <section>
+            <div className="grid grid-cols-1 lg:grid-cols-5 lg:items-center gap-4 lg:gap-16 mt-20 px-9">
+                <div className=" content-center lg:col-span-2  ">
+                    <h3 className="text-4xl lg:text-5xl font-bold text-light text-start leading-tight">
+                        Check Our Latest Model!
+                    </h3>
+                    <div className="mt-4 flex justify-center ">
+                    <a href="/" className=" rounded-md border-2 p-4 border-light/80 hover:border-dark hover:bg-light hover:text-dark">
+                        Click Here!
+                    </a>
+                    </div>
+                </div>
+                <img src="/images/DoxariaHero.webp" alt="heroimage" className="lg:col-span-3  "></img>
+
+            </div>
+        </section>
+    )
+}
