@@ -1,0 +1,10 @@
+numpy
+seaborn
+tensorflow
+matplotlib.pyplot
+paddlepaddle-gpu
+paddleocr>=2.6.0
+opencv-python
+calamari-ocr
+tensorflow-gpu
+scikit-image
