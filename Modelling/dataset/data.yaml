@@ -1,0 +1,7 @@
+
+train: C:\Users\User\OneDrive - ESPRIT\Bureau\4DS\Semester2\Project\ProjectDS\modelling\dataset\images\train
+val: C:\Users\User\OneDrive - ESPRIT\Bureau\4DS\Semester2\Project\ProjectDS\modelling\dataset\images\val
+test: C:\Users\User\OneDrive - ESPRIT\Bureau\4DS\Semester2\Project\ProjectDS\modelling\dataset\images\test
+
+nc: 10
+names: ['nom et prenom de adherent', 'matricule cnam', 'matricule de adherent', 'addresse de ladherent', 'numero cin ou passeport', 'nom et prenom du malade', 'date de naissance', 'date', 'designation', 'honoraire']
