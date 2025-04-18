@@ -24,7 +24,7 @@ export default function Model(){
         }
     }
     return(
-        <section className="container mx-auto">
+        <section className="container">
             <div className="flex my-4 gap-x-4  ">
                 <button onClick={handlePrescription} className="hover:bg-light/30 border-0" >Prescription</button>
                 <button onClick={handleMedicalForm} className="hover:bg-light/30 border-0" >Medical Care Form</button>
@@ -34,7 +34,6 @@ export default function Model(){
                     RenderForm(active)
                 }
             </div>
-
 
         </section>
 

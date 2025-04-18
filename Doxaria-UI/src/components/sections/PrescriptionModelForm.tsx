@@ -1,10 +1,10 @@
 export default function PrescriptionModelForm (){
     return (
-        <section className="container mx-auto">
+        <section >
             <div className="flex justify-center items-center my-5">
                 <h1 className="text-4xl text-light ">Here you can digitalize your Prescription docs!</h1>
             </div>
-            <div className="">
+            <div>
                 <h3 className=" flex justify-center items-center text-2xl my-5">Just upload your docs here!</h3>
                 <form className="">
 
