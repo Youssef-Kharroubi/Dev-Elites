@@ -6,7 +6,7 @@ export default function Header() {
                 <a href="/" className=" text-content  p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200  ">Home</a>
                 <a href="/" className=" text-content p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200  ">Dashboard</a>
                 <a href="/Model" className=" text-content p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200  ">Model</a>
-                <a href="/" className=" text-content p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200  ">Contact Us</a>
+                <a href="/AboutUs" className=" text-content p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200  ">About Us</a>
             </nav>
         </header>
     )

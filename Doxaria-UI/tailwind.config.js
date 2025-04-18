@@ -13,7 +13,7 @@ module.exports = {
     },
     container: {
       center: true,
-      padding: "24px",
+      padding: "20px",
     }
   },
   plugins: [],
