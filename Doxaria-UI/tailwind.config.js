@@ -11,6 +11,10 @@ module.exports = {
         content: "#8a8f98",
       },
     },
+    container: {
+      center: true,
+      padding: "20px",
+    }
   },
   plugins: [],
 };
