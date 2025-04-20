@@ -1,3 +1,6 @@
 .idea/
 Backend/.env
 document_classificationdocument_classification/
+venv/
+env/
+.venv/
