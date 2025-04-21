@@ -4,3 +4,10 @@ document_classificationdocument_classification/
 venv/
 env/
 .venv/
+.DS_Store
+
+__pycache__/
+*.pyc
+
+
+src/models/
