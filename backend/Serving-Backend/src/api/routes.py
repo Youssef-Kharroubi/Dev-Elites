@@ -1,5 +1,9 @@
 from flask import request, jsonify
+from flask_cors import CORS
 from ..services.document_processor import DocumentProcessor
+
+
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
 
 processor = DocumentProcessor()
 
