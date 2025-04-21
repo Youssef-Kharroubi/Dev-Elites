@@ -17,35 +17,30 @@ This project aims to develop a system capable of recognizing and retrieving hand
 - **State Management:** Redux Toolkit
 
 ### Backend
-- **Framework:** Node.js with Express
-- **Database:** MongoDB
-- **OCR Integration:** Tesseract.js or OpenCV
+- **Framework:** Flask
+- **Database:** Azure cosmos DB / Blob Storage
+- **OCR Integration:** TRocr 
+- **Classification:** Our Own CNN model 
 
 ### Other Tools
 - **Version Control:** Git and GitHub
-- **Deployment:** Docker and AWS EC2
+- **Deployment:** Docker and Azure
 
 ### Root Structure
 ```
 medical-handwriting-recognition/  
-├── Code/  
-│   ├── DataCleaning/           
-│   ├── Modeling/             
-│   ├── Scoring/                
-│   └── Utilities/              
-├── Data/  
-│   ├── Raw/                 
-│   ├── Processed/            
-│   └── Output/                 
-├── Docs/  
-│   ├── ProjectPlan.md          
-│   ├── DataDescription.md     
-│   ├── ModelingApproach.md    
-│   └── Evaluation.md           
-├── Deployment/  
-│   ├── Docker/                 
-│   ├── Kubernetes/           
-│   └── CI-CD/                 
+├── Backend/  
+│   ├── Serving-Backend/           
+│   └── Training-Pipeline/                       
+├── Docker/  
+│   ├── README.md                 
+│   ├── requirements.txt/ 
+│   ├── serving.Dockerfile/            
+│   └── training.Dockerfile/                 
+├── Doxaria-UI/  
+│   ├── src/
+│        ├── components/
+│        └── pages/                          
 └── README.md
 ```
 ---
