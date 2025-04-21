@@ -1,5 +1,5 @@
 import tensorflow as tf
-from .preprocess import preprocess_image
+from preprocess import preprocess_image
 
 def classify_document(image_path, model):
     img = preprocess_image(image_path)
