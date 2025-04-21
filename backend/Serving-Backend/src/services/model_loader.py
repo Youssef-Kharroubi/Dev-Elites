@@ -1,5 +1,5 @@
 import tensorflow as tf
-from ....DB.model_store import load_model
+from ..DB.model_store import load_model
 
 def load_model_from_db(name, version, output_path="temp_model.h5"):
     """
