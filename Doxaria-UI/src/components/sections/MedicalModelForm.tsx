@@ -4,6 +4,7 @@ import axios from "axios";
 
 export default function MedicalModelForm (){
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [insuranceCompany,setInsuranceCompany] = useState("");
     const [fileType, setFileType] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
@@ -41,8 +42,10 @@ export default function MedicalModelForm (){
                     'Content-Type': 'multipart/form-data',
                 }}).then(
                 function(response){
-                    setFileType(response.data.type);
-                    if (response.data.type.toLowerCase() === "medical care form") {
+                    console.log(response.data);
+                    setFileType(response.data.binary_class);
+                    setInsuranceCompany(response.data.insurance_class);
+                    if (response.data.binary_class.toLowerCase() === "medical care form") {
                         setEnableSubmit(true);
                     } else {
                         setEnableSubmit(false);
@@ -107,8 +110,8 @@ export default function MedicalModelForm (){
                 </div>
             </div>
             <div>
-                {fileType && (
-                    <div className="text-green-500 text-center mb-4 font-bold text-2xl"><span className="text-white ">Your file is :</span> {fileType}
+                {fileType && insuranceCompany &&(
+                    <div className="text-green-500 text-center mb-4 font-bold text-2xl"><span className="text-white ">Your file is :</span> {fileType} / {insuranceCompany}
                     </div>
                 )}
             </div>

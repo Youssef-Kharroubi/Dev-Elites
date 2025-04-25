@@ -1,14 +1,17 @@
-#from .model_loader import load_model_from_db
 from ..utils.classification import classify_document
 from tensorflow.keras.models import load_model
-#from ..utils.ocr import process_ocr
 import os
 
 class DocumentProcessor:
     def __init__(self):
-        model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'CNN_model.h5')
-        self.classifier = load_model(model_path)
+        base_path = os.path.dirname(__file__)
+        binary_model_path = os.path.join(base_path, '..', 'models', 'CNN_model.h5')
+        insurance_model_path = os.path.join(base_path, '..', 'models', 'insurance_classifier_vgg16.h5')
+
+        self.binary_model = load_model(binary_model_path)
+        self.insurance_model = load_model(insurance_model_path)
 
     def process_image(self, image_path):
-        doc_type = classify_document(image_path, self.classifier)
-        return {"type": doc_type}
+        print(self.insurance_model);
+        result = classify_document(image_path, self.binary_model, self.insurance_model)
+        return result
