@@ -1,12 +1,11 @@
-#from .model_loader import load_model_from_db
-from ..utils.classification import classify_document
 from tensorflow.keras.models import load_model
-#from ..utils.ocr import process_ocr
+from ..utils.classification import classify_document
 import os
 
 class DocumentProcessor:
-    def __init__(self):
-        model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'CNN_model.h5')
+    def __init__(self, model_path):
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model file not found at: {model_path}")
         self.classifier = load_model(model_path)
 
     def process_image(self, image_path):
