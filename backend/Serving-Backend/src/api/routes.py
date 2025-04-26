@@ -2,8 +2,8 @@ from flask import request, jsonify
 from ..services.document_processor import DocumentProcessor
 import os
 
-def init_routes(app, model_path):
-    processor = DocumentProcessor(model_path)
+def init_routes(app):
+    processor = DocumentProcessor()
 
     @app.route('/process_document', methods=['POST'])
     def process_document():
