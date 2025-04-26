@@ -1,28 +1,25 @@
 from PIL import Image, ImageEnhance
+import numpy as np
 import os
 
-TARGET_SIZE = (260, 260)  # Try 144x144 to match model expectation
+TARGET_SIZE = (256, 256)
 
+def preprocess_image(image_path, output_path=None):
 
-def preprocess_image(image_path, output_path):
-    # Load image
-    image = Image.open(image_path).convert('RGB')  # Ensure RGB
+    image = Image.open(image_path)
+    gray_image = image.convert("L")
 
-    # Apply sharpness enhancement
-    enhancer = ImageEnhance.Sharpness(image)
+    enhancer = ImageEnhance.Sharpness(gray_image)
     sharp_image = enhancer.enhance(2.0)
 
-    # Resize image
     resized_image = sharp_image.resize(TARGET_SIZE, Image.LANCZOS)
 
-    # Apply second sharpness enhancement
-    enhancer = ImageEnhance.Sharpness(resized_image)
-    final_image = enhancer.enhance(1.5)
+    final_image = ImageEnhance.Sharpness(resized_image).enhance(1.5)
 
-    # Ensure output directory exists
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    final_image_rgb = np.stack([np.array(final_image)] * 3, axis=-1)
 
-    # Save preprocessed image
-    final_image.save(output_path, dpi=(300, 300), quality=95)
+    if output_path:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        Image.fromarray(final_image_rgb).save(output_path, dpi=(300, 300), quality=95)
 
-    return final_image
+    return final_image_rgb

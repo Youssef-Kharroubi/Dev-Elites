@@ -1,9 +1,15 @@
+from .api.app import app
+from dotenv import load_dotenv
+
 import os
 from azureml.core import Workspace
 from .services.model_loader import download_model
 from .api.app import create_app
 
 if __name__ == "__main__":
+    load_dotenv()
+    app.run()
+
     try:
         ws = Workspace.from_config()
         model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "models", "CNN_model.h5"))

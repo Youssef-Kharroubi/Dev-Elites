@@ -1,0 +1,4 @@
+config.json
+*.jpg
+venv
+.env
