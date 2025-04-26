@@ -1,4 +1,60 @@
+import {useState} from "react";
+import axios from "axios";
+
 export default function PrescriptionModelForm (){
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [fileType, setFileType] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [enableSubmit, setEnableSubmit] = useState(false);
+    const allowedFileTypes = [ 'image/png', 'image/jpeg', 'image/gif'];
+
+    const onFileChange = async  (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file && allowedFileTypes.includes(file.type)) {
+            setSelectedFile(file);
+            setError(null);
+            await onFileUpload(file);
+
+
+        } else {
+            setSelectedFile(null);
+            setError('Please select a valid file type (SVG, PNG, JPG, or GIF)');
+        }
+    };
+    const onFileUpload = async (file: any) => {
+        const API_URL = import.meta.env.VITE_CLASSIFICATION_API_ENDPOINT;
+        if (!file) {
+            setError('Please select a file to upload');
+            return;
+        }
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append(
+            "image",
+            file,
+        );
+        try{
+            axios.post(API_URL, formData,{
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }}).then(
+                function(response){
+                    setFileType(response.data.document_type);
+                    if (response.data.document_type.toLowerCase() === "prescription") {
+                        setEnableSubmit(true);
+                    } else {
+                        setEnableSubmit(false);
+                    }
+                }
+            );
+        }catch (error:any) {
+            console.error('Error uploading file:', error);
+            setError('Failed to upload file: ' + (error.response?.data?.error || error.message));
+        } finally {
+            setIsUploading(false);
+        }
+    };
     return (
         <section >
             <div className="flex justify-center items-center my-5">
@@ -6,8 +62,12 @@ export default function PrescriptionModelForm (){
             </div>
             <div>
                 <h3 className=" flex justify-center items-center text-2xl my-5">Just upload your docs here!</h3>
-                <form className="">
-
+                {error && (
+                    <div className="text-red-500 text-center mb-4">{error}</div>
+                )}
+                {isUploading && (
+                    <div className="text-white text-center mb-4">Uploading...</div>
+                )}
                     <div className="flex items-center justify-center w-full">
                         <label htmlFor="dropzone-file"
                                className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
@@ -23,17 +83,32 @@ export default function PrescriptionModelForm (){
                                 <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX.
                                     800x400px)</p>
                             </div>
-                            <input id="dropzone-file" type="file" className="hidden"/>
+                            <input id="dropzone-file" type="file" className="hidden" onChange={onFileChange}
+                                   disabled={isUploading}/>
                         </label>
                     </div>
 
                     <p id="helper-text-explanation" className="mt-2 text-sm text-gray-500 dark:text-gray-400">We’ll
                         never share your details. Read our
-                        <a href="#" className="font-medium text-blue-600 hover:underline dark:text-blue-500">Privacy Policy</a>.</p>
-                        <div className="flex justify-end align-end">
-                        <button type="button" name="submit" id="submit" className=" my-2 bg-light/10 hover:bg-light/30 border-0">Submit !</button>
-                        </div>
-                </form>
+                        <a href="#" className="font-medium text-blue-600 hover:underline dark:text-blue-500">Privacy
+                            Policy</a>.</p>
+                    <div className="flex justify-end align-end">
+                        <button type="button" name="submit" id="submit"
+                                disabled={!enableSubmit}
+                                className={`my-2 bg-light/10 border-0 ${
+                                    enableSubmit ? 'hover:bg-light/30' : 'opacity-50 cursor-not-allowed'
+                                }`}>Submit !
+                        </button>
+
+                    </div>
+                    <div>
+                        {fileType && (
+                            <div className="text-green-500 text-center mb-4 font-bold text-2xl"><span
+                                className="text-white ">Your file is :</span> {fileType}
+                            </div>
+                        )}
+                    </div>
+
             </div>
 
         </section>
