@@ -1,4 +1,4 @@
-from ..utils.classification import classify_document
+from ..utils.insurer_classification import classify_images
 from tensorflow.keras.models import load_model
 import os
 
@@ -12,6 +12,5 @@ class DocumentProcessor:
         self.insurance_model = load_model(insurance_model_path)
 
     def process_image(self, image_path):
-        print(self.insurance_model);
-        result = classify_document(image_path, self.binary_model, self.insurance_model)
+        result = classify_images( self.binary_model,self.insurance_model,image_path)
         return result
