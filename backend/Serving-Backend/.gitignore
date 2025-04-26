@@ -2,3 +2,4 @@ config.json
 *.jpg
 venv
 .env
+__pycache__/
