@@ -42,10 +42,9 @@ export default function MedicalModelForm (){
                     'Content-Type': 'multipart/form-data',
                 }}).then(
                 function(response){
-                    console.log(response.data);
-                    setFileType(response.data.binary_class);
-                    setInsuranceCompany(response.data.insurance_class);
-                    if (response.data.binary_class.toLowerCase() === "medical care form") {
+                    setFileType(response.data.document_type);
+                    setInsuranceCompany(response.data.insurance_company[0]);
+                    if (response.data.document_type.toLowerCase() === "medical care form") {
                         setEnableSubmit(true);
                     } else {
                         setEnableSubmit(false);
@@ -111,7 +110,8 @@ export default function MedicalModelForm (){
             </div>
             <div>
                 {fileType && insuranceCompany &&(
-                    <div className="text-green-500 text-center mb-4 font-bold text-2xl"><span className="text-white ">Your file is :</span> {fileType} / {insuranceCompany}
+                    <div className="text-green-500 text-center mb-4 font-bold text-2xl"><span className="text-white ">Your file is :</span> {fileType} <br/>
+                        <span className="text-white"> Insurance company is </span> {insuranceCompany}
                     </div>
                 )}
             </div>
