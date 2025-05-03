@@ -1,111 +1,135 @@
 import cv2
 import numpy as np
-from scipy.ndimage import gaussian_filter1d
-from transformers import TrOCRProcessor, VisionEncoderDecoderModel
+import pandas as pd
+import tensorflow as tf
 from PIL import Image
-import torch
+from transformers import TrOCRProcessor, VisionEncoderDecoderModel
+import easyocr
+import re
+from thefuzz import fuzz
 
 processor = TrOCRProcessor.from_pretrained("microsoft/trocr-large-handwritten")
-model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-large-handwritten")
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
+trocr_model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-large-handwritten")
 
-def recognize_text_from_image(image_path):
-    # Step 1: Preprocessing
-    def preprocess(image):
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        sharpened = cv2.filter2D(gray, -1, np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]]))
-        kernel = np.ones((1, 1), np.uint8)
-        denoised = cv2.medianBlur(cv2.morphologyEx(cv2.erode(cv2.dilate(sharpened, kernel, iterations=1), kernel, iterations=1), cv2.MORPH_CLOSE, kernel), 3)
-        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
-        contrast = clahe.apply(denoised)
-        inverted = cv2.bitwise_not(contrast)
-        thicker = cv2.dilate(inverted, np.ones((2,2),np.uint8), iterations=1)
-        return cv2.bitwise_not(thicker)
+def load_and_clean_data(excel_path):
+    """Load and clean the medicine dataset from an Excel file."""
+    df = pd.read_excel('../../models/cleaned_file.xlsx')
+    name_list = df['Nom'].dropna().astype(str).tolist()
+    return name_list
 
-    def segment_lines(binary):
-        projection = gaussian_filter1d(np.sum(binary, axis=1), sigma=3)
-        threshold = max(np.max(projection) * 0.01, 50)
-        lines = []
-        start = None
-        for i, val in enumerate(projection):
-            if val > threshold and start is None:
-                start = i
-            elif val <= threshold and start is not None:
-                if i - start >= 30:
-                    lines.append((start, i))
-                start = None
-        if start is not None and len(projection) - start >= 30:
-            lines.append((start, len(projection)))
-        merged = []
-        if lines:
-            current_start, current_end = lines[0]
-            for s, e in lines[1:]:
-                if s - current_end <= 30:
-                    current_end = e
-                else:
-                    merged.append((current_start, current_end))
-                    current_start, current_end = s, e
-            merged.append((current_start, current_end))
-        padding = 60
-        return [binary[max(0,s-padding):min(binary.shape[0],e+padding), :] for s,e in merged]
-
-    def segment_words(line_img):
-        _, binary = cv2.threshold(line_img, 127, 255, cv2.THRESH_BINARY)
-        height, width = binary.shape
-        gaps = []
-        gap_start = None
-        gap_count = 0
-        for col in range(width):
-            if np.all(binary[:, col] < 100):
-                if gap_start is None:
-                    gap_start = col
-                gap_count += 1
-            else:
-                if gap_start is not None and gap_count >= 100:
-                    gaps.append((gap_start, col))
-                gap_start = None
-                gap_count = 0
-        if gap_start is not None and gap_count >= 100:
-            gaps.append((gap_start, width))
-        word_boundaries = []
-        if not gaps:
-            word_boundaries.append((0, width))
-        else:
-            if gaps[0][0] > 0:
-                word_boundaries.append((0, gaps[0][0]))
-            for i in range(len(gaps) - 1):
-                start = gaps[i][1]
-                end = gaps[i + 1][0]
-                if end - start >= 50:
-                    word_boundaries.append((start, end))
-            if gaps[-1][1] < width:
-                word_boundaries.append((gaps[-1][1], width))
-        return [binary[:, max(0,s-2):min(width,e+2)] for s,e in word_boundaries if (e-s) > 50]
-
-    def recognize_word(img):
-        rgb_img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        pil_img = Image.fromarray(rgb_img).convert("RGB")
-        pixel_values = processor(pil_img, return_tensors="pt").pixel_values.to(device)
-        generated_ids = model.generate(pixel_values)
-        return processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
-
+def preprocess_image_for_detection(image_path):
+    """Load and preprocess image for text detection."""
     img = cv2.imread(image_path)
     if img is None:
-        raise FileNotFoundError(f"Image not found at: {image_path}")
+        raise ValueError("Image not loaded correctly.")
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    processed_img = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+    return processed_img
 
-    processed = preprocess(img)
-    _, binary = cv2.threshold(processed, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    _, binary = cv2.threshold(binary, 127, 255, cv2.THRESH_BINARY)
+def detect_text(image, reader):
+    """Detect text in the preprocessed image using EasyOCR."""
+    results = reader.readtext(
+        image,
+        detail=1,
+        paragraph=False,
+        ycenter_ths=0.3,
+        height_ths=2,
+        min_size=20,
+        mag_ratio=1.5
+    )
+    return results
 
-    lines = segment_lines(binary)
-    final_text = []
-    for line_img in lines:
-        words = segment_words(line_img)
-        line_text = ' '.join(recognize_word(word) for word in words)
-        final_text.append(line_text)
+def preprocess_for_classification(img, img_height=256, img_width=128):
+    """Preprocess cropped image for classification."""
+    if img is None or img.size == 0:
+        return None
+    img = cv2.resize(img, (img_width, img_height))
+    img = img / 255.0
+    img = np.expand_dims(img, axis=(0, -1))
+    return img
 
-    return '\n'.join(final_text)
+def classify_text(img, model):
+    """Classify text as handwritten or printed."""
+    if img is None:
+        return None
+    prediction = model.predict(img)
+    label = "Handwritten" if prediction[0][0] < 0.5 else "Printed"
+    confidence = 1 - prediction[0][0] if label == "Handwritten" else prediction[0][0]
+    return label, confidence
 
-text = recognize_text_from_image("prescription.jpg")
-print(text)
+
+def recognize_handwritten_text(img, processor, model):
+    """Recognize handwritten text using TrOCR."""
+    if img is None:
+        return None
+    pil_img = Image.fromarray(img, mode='RGB')
+    pixel_values = processor(pil_img, return_tensors="pt").pixel_values
+    generated_ids = model.generate(pixel_values)
+    text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+    return text
+
+def is_valid_text(text):
+    """Check if text contains at most one non-letter character (excluding spaces)."""
+    non_letter_count = len(re.findall(r'[^a-zA-Z\s]', text))
+    cleaned_text = re.sub(r'[^a-zA-Z]', '', text)
+    return non_letter_count <= 1, cleaned_text
+
+def match_word_to_names(word, name_list, threshold=65):
+    """Match a word to a list of names based on fuzzy similarity."""
+    matches = []
+    for name in name_list:
+        similarity = fuzz.ratio(word.lower(), name.lower())
+        if similarity >= threshold:
+            matches.append((name, similarity))
+    return sorted(matches, key=lambda x: x[1], reverse=True)
+
+def predict_text(image_path, excel_path,classification_model,reader_easy_ocr):
+    
+    name_list = load_and_clean_data(excel_path)
+
+    processed_img = preprocess_image_for_detection(image_path)
+
+    results = detect_text(processed_img, reader_easy_ocr)
+
+    predicted_texts = []
+    for idx, (bbox, text, prob) in enumerate(results):
+        (top_left, top_right, bottom_right, bottom_left) = bbox
+        top_left = (int(top_left[0]), int(top_left[1]))
+        bottom_right = (int(bottom_right[0]), int(bottom_right[1]))
+
+        word_img = processed_img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
+
+        if word_img.shape[0] <= 0 or word_img.shape[1] <= 0:
+            print(f"Word {idx+1} has invalid dimensions and will be skipped.")
+            continue
+
+        word_img_preprocessed = preprocess_for_classification(word_img)
+        label, confidence = classify_text(word_img_preprocessed, classification_model)
+        print(f"the image is {label}")
+        if label == "Handwritten":
+            word_img_rgb = cv2.cvtColor(word_img, cv2.COLOR_GRAY2RGB)
+            recognized_text = recognize_handwritten_text(word_img_rgb, processor, trocr_model)
+            if recognized_text:
+                is_valid, cleaned_text = is_valid_text(recognized_text)
+                if is_valid and len(cleaned_text) > 2:
+                    predicted_texts.append(cleaned_text)
+                    print(f"Word {idx+1}: {cleaned_text} (Valid, Confidence: {confidence:.2f})")
+                else:
+                    print(f"Word {idx+1}: {recognized_text} (Skipped: Invalid or too short)")
+
+    for pred in predicted_texts:
+        matches = match_word_to_names(pred, name_list)
+        print(f"\nMatches for '{pred}':")
+        if matches:
+            for matched_name, similarity in matches:
+                print(f"'{matched_name}' (Similarity: {similarity}%)")
+        else:
+            print("No matches found.")
+
+reader = easyocr.Reader(['fr'], gpu=False)
+cnn_model = tf.keras.models.load_model("../../models/text_classification_model.h5")
+image_path = "prescription1.jpeg"
+excel_path = "../../models/cleaned_file.xls"
+
+predict_text(image_path, excel_path, cnn_model,reader)
