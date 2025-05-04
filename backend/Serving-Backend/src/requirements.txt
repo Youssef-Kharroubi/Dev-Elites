@@ -4,6 +4,7 @@ gunicorn==21.2.0
 flask-cors
 
 azureml-core==1.56.0
+azure-cosmos==4.5.1
 
 transformers==4.39.3
 torch==2.1.2
@@ -19,6 +20,7 @@ numpy==1.26.4
 pandas==2.2.2
 thefuzz==0.20.0
 Pillow==10.2.0
+openpyxl==3.1.2
 
 requests==2.31.0
 python-dotenv==1.0.0
