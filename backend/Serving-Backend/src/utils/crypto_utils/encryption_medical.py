@@ -60,5 +60,5 @@ def encrypt_and_store_json_data(json_data: dict, insurance_company: str):
         print(f"Created new document for {insurance_company} in {company_to_container[insurance_company]} container.")
 
 #call of the code 
-my_data = {"birth_date": "2024-05-03", "subscriber_name": "ayoub", "patient_name": "rekik", "id":"987542", "cnam_code": "85478", "cin_or_passport": "87548136", "address": "sfax"}
-encrypt_and_store_json_data(my_data, "STAR")
+my_data = {"birth_date": "2024-09-03", "subscriber_name": "leila", "patient_name": "ben abdallah", "id":"27542", "cnam_code": "28478", "cin_or_passport": "27348136", "address": "sousse"}
+encrypt_and_store_json_data(my_data, "CNAM")

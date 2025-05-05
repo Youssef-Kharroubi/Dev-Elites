@@ -15,3 +15,5 @@ src/models/
 *.pkl
 *.pt
 *.csv
+*.xlsx
+*.key
