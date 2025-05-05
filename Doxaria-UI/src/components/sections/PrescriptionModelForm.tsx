@@ -2,55 +2,78 @@ import {useState} from "react";
 import axios from "axios";
 
 export default function PrescriptionModelForm (){
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [selectedFile, setSelectedFile] = useState<[File] | []>();
     const [fileType, setFileType] = useState("");
+    const [numberOfFiles, setNumberOfFiles] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [enableSubmit, setEnableSubmit] = useState(false);
+    const [enableSubmit, setEnableSubmit] = useState(true);
     const allowedFileTypes = [ 'image/png', 'image/jpeg', 'image/gif'];
 
-    const onFileChange = async  (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file && allowedFileTypes.includes(file.type)) {
-            setSelectedFile(file);
+    const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files: FileList | null = event.target.files;
+        setNumberOfFiles(files?.length || 0);
+
+        if (!files || files.length === 0) {
+            setError('Please select at least one file');
+            setSelectedFile(null);
+            return;
+        }
+
+        let allowed = true;
+        for (let i = 0; i < files.length; i++) {
+            if (!allowedFileTypes.includes(files[i].type)) {
+                console.log(`Invalid file type: ${files[i].type}`);
+                allowed = false;
+                break;
+            }
+        }
+
+        if (allowed) {
+            setSelectedFile(files);
+            await onFileUpload(files);
             setError(null);
-            await onFileUpload(file);
-
-
         } else {
             setSelectedFile(null);
             setError('Please select a valid file type (SVG, PNG, JPG, or GIF)');
         }
     };
-    const onFileUpload = async (file: any) => {
+    const onFileUpload = async (files: FileList | null) => {
         const API_URL = import.meta.env.VITE_CLASSIFICATION_API_ENDPOINT;
-        if (!file) {
+        if (!files || files.length === 0) {
             setError('Please select a file to upload');
             return;
         }
+
         setIsUploading(true);
         const formData = new FormData();
-        formData.append(
-            "image",
-            file,
-        );
-        try{
-            axios.post(API_URL, formData,{
+
+        for (let i = 0; i < files.length; i++) {
+            formData.append('images', files[i]);
+        }
+
+        try {
+            const response = await axios.post(API_URL, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                }}).then(
-                function(response){
-                    setFileType(response.data.document_type);
-                    if (response.data.document_type.toLowerCase() === "prescription") {
-                        setEnableSubmit(true);
-                    } else {
-                        setEnableSubmit(false);
-                    }
+                },
+            });
+
+            console.log('Response:', response.data);
+            let results = response.data.results;
+            setFileType("prescription");
+            for(var s of results){
+                if(s.document_type?.toLowerCase() !== 'prescription'){
+                    setEnableSubmit(false);
+                    setFileType(s.document_type);
+                    break;
                 }
-            );
-        }catch (error:any) {
+            }
+        } catch (error: any) {
             console.error('Error uploading file:', error);
-            setError('Failed to upload file: ' + (error.response?.data?.error || error.message));
+            const errorMessage =
+                error.response?.data?.error || error.message || 'Unknown error';
+            setError(`Failed to upload file: ${errorMessage}`);
         } finally {
             setIsUploading(false);
         }
@@ -68,46 +91,47 @@ export default function PrescriptionModelForm (){
                 {isUploading && (
                     <div className="text-white text-center mb-4">Uploading...</div>
                 )}
-                    <div className="flex items-center justify-center w-full">
-                        <label htmlFor="dropzone-file"
-                               className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
-                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                          stroke-width="2"
-                                          d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                                </svg>
-                                <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span
-                                    className="font-semibold">Click to upload</span> or drag and drop</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX.
-                                    800x400px)</p>
-                            </div>
-                            <input id="dropzone-file" type="file" className="hidden" onChange={onFileChange}
-                                   disabled={isUploading}/>
-                        </label>
-                    </div>
+                <h3 className="m-2">Number Of Selected Files : {numberOfFiles} </h3>
+                <div className="flex items-center justify-center w-full">
+                    <label htmlFor="dropzone-file"
+                           className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                      stroke-width="2"
+                                      d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                            </svg>
+                            <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span
+                                className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX.
+                                800x400px)</p>
+                        </div>
+                        <input id="dropzone-file" type="file" className="hidden" accept="image/png,image/jpeg,image/gif" onChange={onFileChange}
+                               disabled={isUploading} multiple/>
+                    </label>
+                </div>
 
-                    <p id="helper-text-explanation" className="mt-2 text-sm text-gray-500 dark:text-gray-400">We’ll
-                        never share your details. Read our
-                        <a href="#" className="font-medium text-blue-600 hover:underline dark:text-blue-500">Privacy
-                            Policy</a>.</p>
-                    <div className="flex justify-end align-end">
-                        <button type="button" name="submit" id="submit"
-                                disabled={!enableSubmit}
-                                className={`my-2 bg-light/10 border-0 ${
-                                    enableSubmit ? 'hover:bg-light/30' : 'opacity-50 cursor-not-allowed'
-                                }`}>Submit !
-                        </button>
+                <p id="helper-text-explanation" className="mt-2 text-sm text-gray-500 dark:text-gray-400">We’ll
+                    never share your details. Read our
+                    <a href="#" className="font-medium text-blue-600 hover:underline dark:text-blue-500">Privacy
+                        Policy</a>.</p>
+                <div className="flex justify-end align-end">
+                    <button type="button" name="submit" id="submit"
+                            disabled={!enableSubmit}
+                            className={`my-2 bg-light/10 border-0 ${
+                                enableSubmit ? 'hover:bg-light/30' : 'opacity-50 cursor-not-allowed'
+                            }`}>Submit !
+                    </button>
 
-                    </div>
-                    <div>
-                        {fileType && (
-                            <div className="text-green-500 text-center mb-4 font-bold text-2xl"><span
-                                className="text-white ">Your file is :</span> {fileType}
-                            </div>
-                        )}
-                    </div>
+                </div>
+                <div>
+                    {fileType && (
+                        <div className="text-green-500 text-center mb-4 font-bold text-2xl"><span
+                            className="text-white ">Your Files Contains Documents of Type  :</span> {fileType}
+                        </div>
+                    )}
+                </div>
 
             </div>
 
