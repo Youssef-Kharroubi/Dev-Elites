@@ -30,4 +30,4 @@ def clean_and_match_name(name_string, threshold=70):
         print("\n")
 
 #call of the code
-#clean_and_match_name("leila", 70)
+clean_and_match_name("leila", 70)

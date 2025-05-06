@@ -50,15 +50,15 @@ def encrypt_and_store_json_data(json_data: dict, insurance_company: str):
         "state": "tunisia"
     }
 
-    if existing_items:
-        existing_doc = existing_items[0]
-        existing_doc.update(document_data)
-        container.replace_item(item=existing_doc['id'], body=existing_doc)
-        print(f"Updated existing document for {insurance_company} in {company_to_container[insurance_company]} container.")
-    else:
-        container.create_item(body=document_data)
-        print(f"Created new document for {insurance_company} in {company_to_container[insurance_company]} container.")
+    #if existing_items:
+        #existing_doc = existing_items[0]
+        #existing_doc.update(document_data)
+        #container.replace_item(item=existing_doc['id'], body=existing_doc)
+        #print(f"Updated existing document for {insurance_company} in {company_to_container[insurance_company]} container.")
+    #else:
+    container.create_item(body=document_data)
+    print(f"Created new document for {insurance_company} in {company_to_container[insurance_company]} container.")
 
 #call of the code 
-my_data = {"birth_date": "2024-09-03", "subscriber_name": "leila", "patient_name": "ben abdallah", "id":"27542", "cnam_code": "28478", "cin_or_passport": "27348136", "address": "sousse"}
-encrypt_and_store_json_data(my_data, "CNAM")
+my_data = {"birth_date": "2020-08-03", "subscriber_name": "amyyne", "patient_name": "ben abdallahh", "id_form":"123542", "cnam_code": "31478", "cin_or_passport": "213836", "address": "soussee"}
+encrypt_and_store_json_data(my_data, "BH")
