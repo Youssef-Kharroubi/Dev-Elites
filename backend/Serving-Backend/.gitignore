@@ -3,3 +3,4 @@ config.json
 venv
 .env
 __pycache__/
+*.key
