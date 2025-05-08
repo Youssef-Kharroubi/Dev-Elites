@@ -9,6 +9,9 @@ from PIL import Image
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 from tensorflow.keras.models import load_model
 
+
+
+
 def process_detections(image, results, class_names):
     crop_counter = 1
     cropped_regions = []
@@ -65,7 +68,7 @@ def merge_boxes(boxes):
         merged.append(new_box)
     return merged
 
-def detect_all_words(image, lang, proximity_threshold=40, predicted_company):
+def detect_all_words(image, lang, proximity_threshold=40, predicted_company="BH"):
     reader = easyocr.Reader([lang], gpu=False)
     results = reader.readtext(image, detail=1, paragraph=False, min_size=10, text_threshold=0.3)
 

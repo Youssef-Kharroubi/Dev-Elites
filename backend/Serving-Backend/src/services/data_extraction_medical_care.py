@@ -3,19 +3,21 @@ import easyocr
 import numpy as np
 import pandas as pd
 import json
+import logging
 import os
 from dotenv import load_dotenv
 from ultralytics import YOLO
 from PIL import Image
 from ..services.document_processor import DocumentProcessor
-from ..utils.Modeling_OCR import process_detections, detect_all_words, extract_texts_from_images
+from ..utils.Modeling_OCR.medical_care_form_extraction import process_detections, detect_all_words, extract_texts_from_images
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 from tensorflow.keras.models import load_model
 
 load_dotenv()
 CLASS_NAMES = json.loads(os.getenv("CLASS_NAMES"))
 Processor = DocumentProcessor()
-
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 class Document_Extractor_Medical_care:
     def __init__(self):
         base_path = os.path.dirname(__file__)
@@ -34,8 +36,8 @@ class Document_Extractor_Medical_care:
             results = self.yolo_model(image, imgsz=640, device=None)
 
             predicted_company = Processor.process_image_internal(image_path)
-            if predicted_company not in ["STAR", "BH", "CNAM"]:
-                raise ValueError(f"Invalid predicted company: {predicted_company}")
+           # if predicted_company not in ["STAR", "BH", "CNAM"]:
+            #    raise ValueError(f"Invalid predicted company: {predicted_company}")
 
             cropped_regions = process_detections(image, results, CLASS_NAMES)
 

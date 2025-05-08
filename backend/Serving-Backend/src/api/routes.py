@@ -25,12 +25,12 @@ def init_routes(app):
     def health_check():
         return jsonify({"status": "healthy"}), 200
 
-    @app.route("/extracted-ata", methods=['GET'])
+    @app.route("/extracted-data", methods=['POST'])
     def extract_data():
         if 'image' not in request.files:
             return jsonify({"error": "No image prvided"}), 400
         file = request.files['image']
-        temp_path = "temp_image,jpg"
+        temp_path = "temp_image.jpg"
         try:
             file.save(temp_path)
             result = extractor_medical_care.process_image(temp_path)
