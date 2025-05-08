@@ -41,3 +41,16 @@ def classify_images(binary_model, multi_model, image_path):
 
 
     return result
+def classify_images_internal(binary_model,multi_model,image_path):
+    binary_class_names = {0: "Medical Care Form", 1: "Prescription"}
+    insurance_class_names = ['BH', 'CNAM', 'STAR']
+    result = {}
+
+    binary_class, binary_prob = predict_binary(binary_model, image_path)
+    binary_class_name = binary_class_names[binary_class]
+
+    if binary_class == 0:
+        insurance_class = predict_insurance_company(multi_model, image_path, insurance_class_names)
+        result = {"insurance_company": insurance_class}
+    else:
+        result = {"document_type": binary_class_name}
