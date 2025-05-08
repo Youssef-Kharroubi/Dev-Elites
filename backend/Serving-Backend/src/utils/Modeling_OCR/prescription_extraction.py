@@ -1,15 +1,16 @@
 import cv2
 import numpy as np
 import pandas as pd
+import json
+import easyocr
+import re
 import tensorflow as tf
 from PIL import Image
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
-import easyocr
-import re
 from thefuzz import fuzz
 
-processor = TrOCRProcessor.from_pretrained("microsoft/trocr-large-handwritten")
-trocr_model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-large-handwritten")
+# processor = TrOCRProcessor.from_pretrained("microsoft/trocr-large-handwritten")
+# trocr_model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-large-handwritten")
 
 def load_and_clean_data(excel_path):
     """Load and clean the medicine dataset from an Excel file."""
@@ -84,15 +85,14 @@ def match_word_to_names(word, name_list, threshold=65):
             matches.append((name, similarity))
     return sorted(matches, key=lambda x: x[1], reverse=True)
 
-def predict_text(image_path, excel_path,classification_model,reader_easy_ocr):
-    
+def predict_text(image_path, excel_path, classification_model, reader_easy_ocr):
     name_list = load_and_clean_data(excel_path)
-
     processed_img = preprocess_image_for_detection(image_path)
-
     results = detect_text(processed_img, reader_easy_ocr)
 
     predicted_texts = []
+    output_results = []
+
     for idx, (bbox, text, prob) in enumerate(results):
         (top_left, top_right, bottom_right, bottom_left) = bbox
         top_left = (int(top_left[0]), int(top_left[1]))
@@ -101,12 +101,23 @@ def predict_text(image_path, excel_path,classification_model,reader_easy_ocr):
         word_img = processed_img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
 
         if word_img.shape[0] <= 0 or word_img.shape[1] <= 0:
-            print(f"Word {idx+1} has invalid dimensions and will be skipped.")
+            output_results.append({
+                "word_index": idx + 1,
+                "status": "skipped",
+                "reason": "invalid_dimensions"
+            })
             continue
 
         word_img_preprocessed = preprocess_for_classification(word_img)
         label, confidence = classify_text(word_img_preprocessed, classification_model)
-        print(f"the image is {label}")
+        output_results.append({
+            "word_index": idx + 1,
+            "classification": {
+                "label": label,
+                "confidence": float(confidence)
+            }
+        })
+
         if label == "Handwritten":
             word_img_rgb = cv2.cvtColor(word_img, cv2.COLOR_GRAY2RGB)
             recognized_text = recognize_handwritten_text(word_img_rgb, processor, trocr_model)
@@ -114,22 +125,41 @@ def predict_text(image_path, excel_path,classification_model,reader_easy_ocr):
                 is_valid, cleaned_text = is_valid_text(recognized_text)
                 if is_valid and len(cleaned_text) > 2:
                     predicted_texts.append(cleaned_text)
-                    print(f"Word {idx+1}: {cleaned_text} (Valid, Confidence: {confidence:.2f})")
+                    output_results.append({
+                        "word_index": idx + 1,
+                        "status": "valid",
+                        "recognized_text": cleaned_text,
+                        "confidence": float(confidence)
+                    })
                 else:
-                    print(f"Word {idx+1}: {recognized_text} (Skipped: Invalid or too short)")
+                    output_results.append({
+                        "word_index": idx + 1,
+                        "status": "skipped",
+                        "reason": "invalid_or_too_short",
+                        "recognized_text": recognized_text
+                    })
 
+    matches_output = []
     for pred in predicted_texts:
         matches = match_word_to_names(pred, name_list)
-        print(f"\nMatches for '{pred}':")
-        if matches:
-            for matched_name, similarity in matches:
-                print(f"'{matched_name}' (Similarity: {similarity}%)")
-        else:
-            print("No matches found.")
+        match_details = [
+            {"name": matched_name, "similarity": float(similarity)}
+            for matched_name, similarity in matches
+        ] if matches else []
+        matches_output.append({
+            "predicted_text": pred,
+            "matches": match_details
+        })
 
-reader = easyocr.Reader(['fr'], gpu=False)
-cnn_model = tf.keras.models.load_model("../../models/text_classification_model.h5")
-image_path = "prescription1.jpeg"
-excel_path = "../../models/cleaned_file.xls"
+    return json.dumps({
+        "results": output_results,
+        "predicted_texts": predicted_texts,
+        "matches": matches_output
+    }, indent=2)
 
-predict_text(image_path, excel_path, cnn_model,reader)
+# reader = easyocr.Reader(['fr'], gpu=False)
+# cnn_model = tf.keras.models.load_model("../../models/text_classification_model.h5")
+# image_path = "prescription1.jpeg"
+# excel_path = "../../models/cleaned_file.xls"
+#
+# predict_text(image_path, excel_path, cnn_model,reader)

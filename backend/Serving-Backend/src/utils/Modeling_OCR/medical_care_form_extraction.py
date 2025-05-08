@@ -1,31 +1,13 @@
 import cv2
 import easyocr
 import numpy as np
-from ultralytics import YOLO
-from PIL import Image
-import matplotlib.pyplot as plt
-from transformers import TrOCRProcessor, VisionEncoderDecoderModel
+import json
 import re
 import pandas as pd
-
-model = YOLO("../../models/best.pt", task="detect")
-predicted_company="STAR"
-
-image = cv2.imread("ayoub.jpg")
-
-class_names = [
-    "nom et prenom de adherent",
-    "matricule cnam",
-    "matricule de adherent",
-    "addresse de ladherent",
-    "numero cin ou passeport",
-    "nom et prenom du malade",
-    "date de naissance",
-    "date",
-    "designation",
-    "honoraire",
-    "id"
-]
+from ultralytics import YOLO
+from PIL import Image
+from transformers import TrOCRProcessor, VisionEncoderDecoderModel
+from tensorflow.keras.models import load_model
 
 def process_detections(image, results, class_names):
     crop_counter = 1
@@ -47,9 +29,6 @@ def process_detections(image, results, class_names):
                     cropped_regions.append((label, cropped_image))
                     crop_counter += 1
     return cropped_regions
-
-results = model(image, imgsz=640, device=None)  
-cropped_regions = process_detections(image, results, class_names)
 
 def horizontal_proximity(box1, box2, proximity_thresh=40, alignment_thresh=15):
     x1_min, y1_min, x1_max, y1_max = box1
@@ -86,7 +65,7 @@ def merge_boxes(boxes):
         merged.append(new_box)
     return merged
 
-def detect_all_words(image, lang='fr', proximity_threshold=40, predicted_company="STAR"):
+def detect_all_words(image, lang, proximity_threshold=40, predicted_company):
     reader = easyocr.Reader([lang], gpu=False)
     results = reader.readtext(image, detail=1, paragraph=False, min_size=10, text_threshold=0.3)
 
@@ -117,32 +96,20 @@ def detect_all_words(image, lang='fr', proximity_threshold=40, predicted_company
                 cropped_regions.append(cropped)
     return cropped_regions
 
-cropped_text_regions = []
-
-for label, cropped_image in cropped_regions:
-    detected_words = detect_all_words(cropped_image, predicted_company=predicted_company)
-    
-    if detected_words:
-        for idx, word_image in enumerate(detected_words, start=1):
-            cropped_text_regions.append((label, word_image))
-
-
-adherent_name = []
-matricule_cnam = []
-matricule_adherent = []
-adresse_adherent = []
-cin_ou_passeport = []
-malade_name = []
-date_naissance = []
-id_field = []
-
 def extract_texts_from_images(cropped_regions):
-    global adherent_name, malade_name, matricule_cnam, matricule_adherent, adresse_adherent, cin_ou_passeport, id_field, date_naissance
     processor = TrOCRProcessor.from_pretrained("microsoft/trocr-large-handwritten")
     model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-large-handwritten")
 
-    extracted_texts = {}
-    region_index = 0
+    extracted_data = {
+        "adherent_name": [],
+        "matricule_cnam": [],
+        "matricule_adherent": [],
+        "adresse_adherent": [],
+        "cin_ou_passeport": [],
+        "malade_name": [],
+        "date_naissance": [],
+        "id_field": []
+    }
 
     for label, cropped_image in cropped_regions:
         try:
@@ -150,36 +117,37 @@ def extract_texts_from_images(cropped_regions):
             pixel_values = processor(images=image, return_tensors="pt").pixel_values
             generated_ids = model.generate(pixel_values)
             predicted_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
-            extracted_texts[label] = predicted_text
 
             if "nom et prenom de adherent" in label:
-                adherent_name.append(predicted_text)
+                extracted_data["adherent_name"].append(predicted_text)
             elif "matricule cnam" in label:
                 predicted_text = re.sub(r'[^0-9]', '', predicted_text)
-                matricule_cnam.append(predicted_text)
+                extracted_data["matricule_cnam"].append(predicted_text)
             elif "matricule de adherent" in label:
                 predicted_text = re.sub(r'[^0-9]', '', predicted_text)
-                matricule_adherent.append(predicted_text)
+                extracted_data["matricule_adherent"].append(predicted_text)
             elif "addresse de ladherent" in label:
-                adresse_adherent.append(predicted_text)
+                extracted_data["adresse_adherent"].append(predicted_text)
             elif "numero cin ou passeport" in label:
                 predicted_text = re.sub(r'[^0-9]', '', predicted_text)
-                cin_ou_passeport.append(predicted_text)
+                extracted_data["cin_ou_passeport"].append(predicted_text)
             elif "nom et prenom du malade" in label:
-                malade_name.append(predicted_text)
+                extracted_data["malade_name"].append(predicted_text)
             elif "date de naissance" in label:
                 predicted_text = re.sub(r'[^0-9/]', '', predicted_text)
-                date_naissance.append(predicted_text)
+                extracted_data["date_naissance"].append(predicted_text)
             elif label.startswith("id") or "id_" in label:
                 predicted_text = re.sub(r'[^0-9/]', '', predicted_text)
-                id_field.append(predicted_text)
+                extracted_data["id_field"].append(predicted_text)
 
             print(f"Extracted text from {label}: {predicted_text}")
-            region_index += 1
 
         except Exception as e:
             print(f"Error processing {label}: {str(e)}")
-            extracted_texts[f"{label}"] = "Error: Could not extract text"
+            extracted_data.setdefault("errors", []).append({label: "Error: Could not extract text"})
+
+    return json.dumps(extracted_data, ensure_ascii=False, indent=2)
 
 #call of the code
-extract_texts_from_images(cropped_text_regions)
+# extract_texts_from_images(cropped_text_regions)
+
