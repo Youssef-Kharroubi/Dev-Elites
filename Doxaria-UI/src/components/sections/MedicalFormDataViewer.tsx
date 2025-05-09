@@ -1,28 +1,85 @@
-import {useState} from "react";
+import { useState } from "react";
+import MedicalCareExtractedData from "../../models/MedicalCareExtractedData.ts";
 
-interface DataExtracted {
-        name:String,
-        drName:String,
-        cin:String,
-        invoiceNumber:String,
-
+interface MedicalFormDataViewerProps {
+    initialData: MedicalCareExtractedData;
+    onSave: (data: MedicalCareExtractedData) => void;
 }
-export default function  MedicalFormDataViewer(){
-        const [imageData, setImageData] = useState<DataExtracted>({
-                name:"John Doe",drName:"Jane Doe",cin:"123456789",invoiceNumber:"123456"
-        });
 
+export default function MedicalFormDataViewer({ initialData, onSave }: MedicalFormDataViewerProps) {
+    const [imageData, setImageData] = useState<MedicalCareExtractedData>(initialData);
+    const [isEditing, setIsEditing] = useState(false);
 
-return (
-    <section className="container border-2 border-white rounded-xl my-3">
-            <h3 className="flex justify-center text-4xl font-bold p-4">Extracted Text</h3>
+    const handleChange = (field: keyof MedicalCareExtractedData, value: string) => {
+        setImageData((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleSave = () => {
+        onSave(imageData);
+        setIsEditing(false);
+    };
+
+    const handleCancel = () => {
+        setImageData(initialData);
+        setIsEditing(false);
+    };
+
+    return (
+        <section className="container rounded-xl my-5 self-center">
+            <h3 className="flex justify-center text-3xl p-4">Extracted Text</h3>
             <div className="grid grid-cols-2 py-4">
-                    <span className="flex justify-center p-2 text-2xl text-gray-500 " > Name: <p className="text-2xl font-bold mx-2 text-white">{imageData.name}</p> </span>
-                    <span className="flex justify-center p-2 text-2xl text-gray-500 "> Doctor Name: <p className="text-2xl font-bold mx-2 text-white ">{imageData.drName} </p></span>
-                    <span className="flex justify-center p-2 text-2xl text-gray-500 "> ID Number: <p className="text-2xl font-bold mx-2  text-white">{imageData.cin}</p></span>
-                    <span className="flex justify-center p-2 text-2xl text-gray-500 ">  Invoice Number: <p className="text-2xl font-bold mx-2  text-white">{imageData.invoiceNumber}</p></span>
+                {[
+                    { label: "Form ID", key: "id_form" },
+                    { label: "Subscriber Name", key: "subscriber_name" },
+                    { label: "CNAM", key: "cnam_code" },
+                    { label: "Registration Number", key: "registration_number" },
+                    { label: "Cin/Passport", key: "cin_or_passport" },
+                    { label: "Address", key: "address" },
+                    { label: "Patient Name", key: "patient_name" },
+                    { label: "Birth Date", key: "birth_date" },
+                ].map(({ label, key }) => (
+                    <span key={key} className=" justify-start p-1 text-xl text-gray-500 ">
+            {label}:{" "}
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                value={imageData[key as keyof MedicalCareExtractedData]}
+                                onChange={(e) => handleChange(key as keyof MedicalCareExtractedData, e.target.value)}
+                                className="text-xl mx-1 text-white bg-dark  "
+                            />
+                        ) : (
+                            <p className="text-xl mx-2 text-white">{imageData[key as keyof MedicalCareExtractedData]}</p>
+                        )}
 
+          </span>
+
+                ))}
             </div>
-    </section>
-);
+            <div className="flex justify-end gap-4 p-4">
+                {isEditing ? (
+                    <>
+                        <button
+                            onClick={handleSave}
+                            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                            Save
+                        </button>
+                        <button
+                            onClick={handleCancel}
+                            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                        >
+                            Cancel
+                        </button>
+                    </>
+                ) : (
+                    <button
+                        onClick={() => setIsEditing(true)}
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                        Edit
+                    </button>
+                )}
+            </div>
+        </section>
+    );
 }

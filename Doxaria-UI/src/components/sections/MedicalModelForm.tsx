@@ -1,6 +1,24 @@
 import MedicalFormDataViewer from "./MedicalFormDataViewer.tsx";
 import { useState } from 'react';
+import MedicalCareExtractedData from "../../models/MedicalCareExtractedData.ts";
 import axios from "axios";
+
+
+const exampleData: MedicalCareExtractedData = {
+    id_form: "8753473",
+    subscriber_name: "Ben Chedli Hichem",
+    cnam_code: "1518695109",
+    registration_number: "686",
+    cin_or_passport: "04635293",
+    address: "32 RUE 8601 CHARGUIA 1 TUNIS",
+    patient_name: "Hichem Bchurg",
+    birth_date: "2002-02-02",
+};
+
+const handleSaveData = (data: MedicalCareExtractedData) => {
+    console.log("Saved data:", data);
+    // Implement actual save logic here (e.g., API call)
+};
 
 export default function MedicalModelForm (){
     const [selectedFile, setSelectedFile] = useState<FileList | null>(null);
@@ -85,8 +103,8 @@ export default function MedicalModelForm (){
             <div className="flex justify-center items-center my-5">
                 <h1 className="text-4xl text-light ">Here you can digitalize your <span className="font-bold">Medical Care Form </span> docs!</h1>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div>
+            <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-1">
                     <h3 className=" flex justify-center items-center text-2xl my-5 ">Just upload your docs here!</h3>
                     {error && (
                         <div className="text-red-500 text-center mb-4">{error}</div>
@@ -108,7 +126,7 @@ export default function MedicalModelForm (){
                     </div>
 
 
-                    <div className="flex items-center justify-center w-full">
+                    <div className="flex items-center justify-center w-full ">
                         <label htmlFor="dropzone-file"
                                className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -138,7 +156,8 @@ export default function MedicalModelForm (){
 
 
                 </div>
-                <MedicalFormDataViewer/>
+                <div className="col-span-2 self-center"><MedicalFormDataViewer initialData={exampleData} onSave={handleSaveData} /></div>
+
             </div>
             <div>
                 {fileType && insuranceCompany.length > 0 && (
