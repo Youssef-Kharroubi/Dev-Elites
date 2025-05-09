@@ -1,5 +1,19 @@
 import {useState} from "react";
 import axios from "axios";
+import PrescriptionDataViewer from "./PrescriptionDataViewer.tsx";
+import PrescriptionExtractedData from "../../models/PrescriptionExtractedData.ts"
+const exampleData: PrescriptionExtractedData = {
+    name: "John Doe",
+    drName: "Jane Doe",
+    cin: "123456789",
+    invoiceNumber: "123456",
+    medicines: "Paracetamol, Ibuprofen",
+};
+
+const handleSaveData = (data: PrescriptionExtractedData) => {
+    console.log("Saved data:", data);
+    // Implement actual save logic here (e.g., API call)
+}
 
 export default function PrescriptionModelForm (){
     const [selectedFile, setSelectedFile] = useState<[File] | []>();
@@ -7,7 +21,7 @@ export default function PrescriptionModelForm (){
     const [numberOfFiles, setNumberOfFiles] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [enableSubmit, setEnableSubmit] = useState(true);
+    const [enableSubmit, setEnableSubmit] = useState(false);
     const allowedFileTypes = [ 'image/png', 'image/jpeg', 'image/gif'];
 
     const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,11 +93,12 @@ export default function PrescriptionModelForm (){
         }
     };
     return (
-        <section >
+        <section className="container" >
             <div className="flex justify-center items-center my-5">
                 <h1 className="text-4xl text-light ">Here you can digitalize your Prescription docs!</h1>
             </div>
-            <div>
+            <div className="grid grid-cols-2 gap-4">
+                <div>
                 <h3 className=" flex justify-center items-center text-2xl my-5">Just upload your docs here!</h3>
                 {error && (
                     <div className="text-red-500 text-center mb-4">{error}</div>
@@ -91,10 +106,23 @@ export default function PrescriptionModelForm (){
                 {isUploading && (
                     <div className="text-white text-center mb-4">Uploading...</div>
                 )}
-                <h3 className="m-2">Number Of Selected Files : {numberOfFiles} </h3>
-                <div className="flex items-center justify-center w-full">
-                    <label htmlFor="dropzone-file"
-                           className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+
+
+                    <div className="flex justify-between">
+                        <h3 className="m-2">Number Of Selected Files : {numberOfFiles} </h3>
+                        <div className="flex justify-end align-end">
+                            <button type="button" name="submit" id="submit"
+                                    disabled={!enableSubmit}
+                                    className={`my-2 bg-light/10 border-0 ${
+                                        enableSubmit ? 'hover:bg-light/30' : 'opacity-50 cursor-not-allowed'
+                                    }`}>Submit !
+                            </button>
+
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-center w-full">
+                        <label htmlFor="dropzone-file"
+                               className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                             <svg className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
                                  xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
@@ -116,15 +144,11 @@ export default function PrescriptionModelForm (){
                     never share your details. Read our
                     <a href="#" className="font-medium text-blue-600 hover:underline dark:text-blue-500">Privacy
                         Policy</a>.</p>
-                <div className="flex justify-end align-end">
-                    <button type="button" name="submit" id="submit"
-                            disabled={!enableSubmit}
-                            className={`my-2 bg-light/10 border-0 ${
-                                enableSubmit ? 'hover:bg-light/30' : 'opacity-50 cursor-not-allowed'
-                            }`}>Submit !
-                    </button>
+
 
                 </div>
+                <PrescriptionDataViewer initialData={exampleData} onSave={handleSaveData} />
+
                 <div>
                     {fileType && (
                         <div className="text-green-500 text-center mb-4 font-bold text-2xl"><span
@@ -138,3 +162,11 @@ export default function PrescriptionModelForm (){
         </section>
     );
 }
+
+
+
+
+
+
+
+
