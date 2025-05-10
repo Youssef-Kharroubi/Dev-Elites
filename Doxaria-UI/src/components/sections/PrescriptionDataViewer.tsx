@@ -43,7 +43,7 @@ export default function PrescriptionDataViewer({ initialData, onSave }: Prescrip
                 <p className="text-xl font-bold mx-2 text-white">{imageData.name}</p>
             )}
         </span>
-                <span className=" justify-center p-2 text-xl text-gray-500 ">
+                <span className=" justify-center p-1 text-xl text-gray-500 ">
           Doctor Name:{" "}
                     {isEditing ? (
                         <input
@@ -53,10 +53,10 @@ export default function PrescriptionDataViewer({ initialData, onSave }: Prescrip
                             className="text-xl mx-1 text-white bg-dark rounded "
                         />
                     ) : (
-                        <p className="text-2xl font-bold mx-2 text-white">{imageData.drName}</p>
+                        <p className="text-xl font-bold mx-2 text-white">{imageData.drName}</p>
                     )}
         </span>
-                <span className=" justify-center p-2 text-xl text-gray-500 ">
+                <span className=" justify-center p-1 text-xl text-gray-500 ">
           Medicines:{" "}
                     {isEditing ? (
                         <input
@@ -66,7 +66,7 @@ export default function PrescriptionDataViewer({ initialData, onSave }: Prescrip
                             className="text-xl mx-1 text-white bg-dark rounded p-1"
                         />
                     ) : (
-                        <p className="text-2xl font-bold mx-2 text-white">{imageData.medicines || "N/A"}</p>
+                        <p className="text-xl font-bold mx-2 text-white">{imageData.medicines || "N/A"}</p>
                     )}
         </span>
             </div>
