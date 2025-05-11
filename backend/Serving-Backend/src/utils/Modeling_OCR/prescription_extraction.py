@@ -89,87 +89,48 @@ def match_word_to_names(word, name_list, threshold=65):
             matches.append((name, similarity))
     return sorted(matches, key=lambda x: x[1], reverse=True)
 
+
 def predict_text(image_path, excel_path, classification_model, reader_easy_ocr):
-    # Load and clean data from Excel
     name_list = load_and_clean_data(excel_path)
 
-    # Preprocess image for text detection
     processed_img = preprocess_image_for_detection(image_path)
 
-    # Detect text using EasyOCR
     results = detect_text(processed_img, reader_easy_ocr)
 
-    # Initialize JSON output structure
-    output = {
-        "matches": []
-    }
-
-    # Process each detected text
     predicted_texts = []
     for idx, (bbox, text, prob) in enumerate(results):
         (top_left, top_right, bottom_right, bottom_left) = bbox
         top_left = (int(top_left[0]), int(top_left[1]))
         bottom_right = (int(bottom_right[0]), int(bottom_right[1]))
 
-        # Extract word image
         word_img = processed_img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
 
-        # Check for valid dimensions
         if word_img.shape[0] <= 0 or word_img.shape[1] <= 0:
-            output["predictions"].append({
-                "word_index": idx + 1,
-                "status": "skipped",
-                "reason": "Invalid dimensions"
-            })
+            print(f"Word {idx + 1} has invalid dimensions and will be skipped.")
             continue
 
-        # Preprocess for classification and classify
         word_img_preprocessed = preprocess_for_classification(word_img)
         label, confidence = classify_text(word_img_preprocessed, classification_model)
-
-        # Initialize prediction entry
-        prediction = {
-            "word_index": idx + 1,
-            "classification": label,
-            "confidence": round(float(confidence), 2),
-            "status": "processed"
-        }
-
-        # Handle handwritten text recognition
+        print(f"the image is {label}")
         if label == "Handwritten":
             word_img_rgb = cv2.cvtColor(word_img, cv2.COLOR_GRAY2RGB)
             recognized_text = recognize_handwritten_text(word_img_rgb, processor, trocr_model)
             if recognized_text:
                 is_valid, cleaned_text = is_valid_text(recognized_text)
-                prediction["recognized_text"] = recognized_text
                 if is_valid and len(cleaned_text) > 2:
                     predicted_texts.append(cleaned_text)
-                    prediction["cleaned_text"] = cleaned_text
-                    prediction["valid"] = True
+                    print(f"Word {idx + 1}: {cleaned_text} (Valid, Confidence: {confidence:.2f})")
                 else:
-                    prediction["valid"] = False
-                    prediction["reason"] = "Invalid or too short"
-            else:
-                prediction["status"] = "skipped"
-                prediction["reason"] = "No text recognized"
+                    print(f"Word {idx + 1}: {recognized_text} (Skipped: Invalid or too short)")
 
-        output["predictions"].append(prediction)
-
-    # Match predicted texts to names
+    output = []
     for pred in predicted_texts:
         matches = match_word_to_names(pred, name_list)
-        match_entry = {
+        match_list = [{"name": matched_name, "similarity": similarity} for matched_name, similarity in
+                      matches] if matches else []
+        output.append({
             "predicted_text": pred,
-            "matches": []
-        }
-        if matches:
-            for matched_name, similarity in matches:
-                match_entry["matches"].append({
-                    "matched_name": matched_name,
-                    "similarity": round(float(similarity), 2)
-                })
-        else:
-            match_entry["matches"].append({"message": "No matches found"})
-        output["matches"].append(match_entry)
+            "matches": match_list
+        })
 
-    return output
+    return json.dumps(output, indent=2)
