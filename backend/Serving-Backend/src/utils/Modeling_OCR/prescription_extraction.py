@@ -101,7 +101,7 @@ def predict_text(image_path, excel_path, classification_model, reader_easy_ocr):
 
     # Initialize JSON output structure
     output = {
-        "predictions": []
+        "matches": []
     }
 
     # Process each detected text
@@ -158,17 +158,18 @@ def predict_text(image_path, excel_path, classification_model, reader_easy_ocr):
     # Match predicted texts to names
     for pred in predicted_texts:
         matches = match_word_to_names(pred, name_list)
-        # Find the prediction entry to append matches
-        for prediction in output["predictions"]:
-            if prediction.get("cleaned_text") == pred:
-                prediction["matches"] = []
-                if matches:
-                    for matched_name, similarity in matches:
-                        prediction["matches"].append({
-                            "matched_name": matched_name,
-                            "similarity": round(float(similarity), 2)
-                        })
-                else:
-                    prediction["matches"] = [{"message": "No matches found"}]
+        match_entry = {
+            "predicted_text": pred,
+            "matches": []
+        }
+        if matches:
+            for matched_name, similarity in matches:
+                match_entry["matches"].append({
+                    "matched_name": matched_name,
+                    "similarity": round(float(similarity), 2)
+                })
+        else:
+            match_entry["matches"].append({"message": "No matches found"})
+        output["matches"].append(match_entry)
 
     return output
