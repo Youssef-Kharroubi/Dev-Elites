@@ -1,6 +1,7 @@
 import os
 import json
 import cv2
+import logging
 import easyocr
 from dotenv import load_dotenv
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
@@ -8,6 +9,8 @@ from tensorflow.keras.models import load_model
 from ..utils.Modeling_OCR.prescription_extraction import predict_text
 
 load_dotenv()
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
 
 class Document_Extractor_Prescription:
     def __init__(self):
