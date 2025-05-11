@@ -19,13 +19,13 @@ class Document_Extractor_Prescription:
 
     def process_prescription(self, image_path):
         reader = easyocr.Reader(['fr'], gpu=False)
-        excel_path = "../DB/dataset_names.csv"
+        excel_path = "../models/cleaned_file.xlsx"
         try:
             image = cv2.imread(image_path)
             if image is None:
                 raise ValueError(f"Failed to load image: {image_path}")
-
-            results = predict_text(image_path,self.cnn_model,excel_path,reader)
+            # predict_text(image_path, excel_path, cnn_model,reader)
+            results = predict_text(image_path,excel_path,self.cnn_model,reader)
             return results
         except Exception as e:
             print(f"Error processing prescription image : {str(e)}")
