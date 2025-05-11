@@ -9,8 +9,8 @@ from PIL import Image
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 from thefuzz import fuzz
 
-# processor = TrOCRProcessor.from_pretrained("microsoft/trocr-large-handwritten")
-# trocr_model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-large-handwritten")
+processor = TrOCRProcessor.from_pretrained("microsoft/trocr-large-handwritten")
+trocr_model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-large-handwritten")
 
 def load_and_clean_data(excel_path):
     """Load and clean the medicine dataset from an Excel file."""
