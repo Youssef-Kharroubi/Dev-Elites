@@ -4,12 +4,12 @@ import PrescriptionExtractedData from "../../models/PrescriptionExtractedData.ts
 
 
 interface PrescriptionDataViewerProps {
-    initialData: PrescriptionExtractedData;
+    data: PrescriptionExtractedData;
     onSave: (data: PrescriptionExtractedData) => void;
 }
 
-export default function PrescriptionDataViewer({ initialData, onSave }: PrescriptionDataViewerProps){
-    const [imageData, setImageData] = useState<PrescriptionExtractedData>(initialData);
+export default function PrescriptionDataViewer({ data, onSave }: PrescriptionDataViewerProps){
+    const [imageData, setImageData] = useState<PrescriptionExtractedData>(data);
     const [isEditing, setIsEditing] = useState(false);
 
     const handleChange = (field: keyof PrescriptionExtractedData, value: string) => {
@@ -22,7 +22,7 @@ export default function PrescriptionDataViewer({ initialData, onSave }: Prescrip
     };
 
     const handleCancel = () => {
-        setImageData(initialData);
+        setImageData(data);
         setIsEditing(false);
     };
 

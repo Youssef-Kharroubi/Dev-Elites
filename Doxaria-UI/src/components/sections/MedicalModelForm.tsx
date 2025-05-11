@@ -5,19 +5,18 @@ import axios from "axios";
 
 
 const exampleData: MedicalCareExtractedData = {
-    id_form: "8753473",
-    subscriber_name: "Ben Chedli Hichem",
-    cnam_code: "1518695109",
-    registration_number: "686",
+    id_field: "8753473",
+    adherent_name: "Ben Chedli Hichem",
+    matricule_cnam: "1518695109",
+    matricule_adherent: "686",
     cin_or_passport: "04635293",
-    address: "32 RUE 8601 CHARGUIA 1 TUNIS",
-    patient_name: "Hichem Bchurg",
-    birth_date: "2002-02-02",
+    adresse_adherent: "32 RUE 8601 CHARGUIA 1 TUNIS",
+    malade_name: "Hichem Bchurg",
+    date_naissance: "2002-02-02",
 };
 
 const handleSaveData = (data: MedicalCareExtractedData) => {
     console.log("Saved data:", data);
-    // Implement actual save logic here (e.g., API call)
 };
 
 export default function MedicalModelForm (){
@@ -29,7 +28,32 @@ export default function MedicalModelForm (){
     const [isUploading, setIsUploading] = useState<boolean>(false);
     const [enableSubmit, setEnableSubmit] = useState<boolean>(false);
     const allowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
+    const [extractedData, SetExtractedData] = useState<MedicalCareExtractedData | null>(null);
 
+
+
+    async function submitImage(){
+        const API_CALL = import.meta.env.VITE_EXTRACTION_MEIDCAL_CARE_DATA_API;
+        if (!selectedFile || selectedFile.length === 0) {
+            console.error('No file selected');
+            return;
+        }
+        const image = selectedFile[0];
+        const formData = new FormData();
+        formData.append('image', image);
+       try{
+           const response = await axios.post(API_CALL, formData,{
+               headers: {
+                   'Content-Type': 'multipart/form-data',
+               },
+           });
+           console.log('Backend response:', response.data);
+           SetExtractedData(response.data);
+       }catch(error){
+           console.error('Error sending image:', error);
+           throw error;
+       }
+    }
     const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files: FileList | null = event.target.files;
         setNumberOfFiles(files?.length || 0);
@@ -117,6 +141,7 @@ export default function MedicalModelForm (){
                         <div className="flex justify-end align-end">
                             <button type="button" name="submit" id="submit"
                                     disabled={!enableSubmit}
+                                    onClick={submitImage}
                                     className={`my-2 bg-light/10 border-0 ${
                                         enableSubmit ? 'hover:bg-light/30' : 'opacity-50 cursor-not-allowed'
                                     }`}>Submit !
@@ -156,7 +181,7 @@ export default function MedicalModelForm (){
 
 
                 </div>
-                <div className="col-span-2 self-center"><MedicalFormDataViewer initialData={exampleData} onSave={handleSaveData} /></div>
+                <div className="col-span-2 self-center"><MedicalFormDataViewer key={JSON.stringify(extractedData)} data={extractedData || exampleData} onSave={handleSaveData} /></div>
 
             </div>
             <div>
