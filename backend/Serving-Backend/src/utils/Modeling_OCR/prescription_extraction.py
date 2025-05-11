@@ -178,9 +178,9 @@ def predict_text(image_path, excel_path, classification_model, reader_easy_ocr):
                     else:
                         logger.debug(f"Region {idx+1} TROCR returned no text")
 
-                # Free memory
-                del word_img, word_img_rgb, word_img_preprocessed
-                gc.collect()
+                # # Free memory
+                # del word_img, word_img_rgb, word_img_preprocessed
+                # gc.collect()
 
             except Exception as e:
                 logger.error(f"Error processing region {idx+1}: {str(e)}", exc_info=True)
