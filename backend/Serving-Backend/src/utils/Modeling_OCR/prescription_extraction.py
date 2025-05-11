@@ -14,7 +14,7 @@ from thefuzz import fuzz
 
 def load_and_clean_data(excel_path):
     """Load and clean the medicine dataset from an Excel file."""
-    df = pd.read_excel('../../models/cleaned_file.xlsx')
+    df = pd.read_excel(excel_path)
     name_list = df['Nom'].dropna().astype(str).tolist()
     return name_list
 
