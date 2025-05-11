@@ -27,7 +27,6 @@ class Document_Extractor_Prescription:
             image = cv2.imread(image_path)
             if image is None:
                 raise ValueError(f"Failed to load image: {image_path}")
-            # predict_text(image_path, excel_path, cnn_model,reader)
             results = predict_text(image_path,self.excel_path,self.cnn_model,reader)
             return results
         except Exception as e:

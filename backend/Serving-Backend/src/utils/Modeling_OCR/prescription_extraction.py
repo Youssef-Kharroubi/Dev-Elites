@@ -4,10 +4,8 @@ import os
 import pandas as pd
 import json
 import logging
-import easyocr
 import re
 import gc
-import tensorflow as tf
 from PIL import Image
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 from thefuzz import fuzz
@@ -193,7 +191,6 @@ def predict_text(image_path, excel_path, classification_model, reader_easy_ocr):
                 })
                 continue
 
-        # Match predicted texts to names
         logger.debug("Matching predicted texts to name list")
         matches_output = []
         for pred in predicted_texts:
@@ -224,10 +221,3 @@ def predict_text(image_path, excel_path, classification_model, reader_easy_ocr):
     finally:
         logger.debug("Cleaning up memory in predict_text")
         gc.collect()
-
-# reader = easyocr.Reader(['fr'], gpu=False)
-# cnn_model = tf.keras.models.load_model("../../models/text_classification_model.h5")
-# image_path = "prescription1.jpeg"
-# excel_path = "../../models/cleaned_file.xls"
-#
-# predict_text(image_path, excel_path, cnn_model,reader)
