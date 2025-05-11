@@ -5,7 +5,7 @@ import easyocr
 from dotenv import load_dotenv
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 from tensorflow.keras.models import load_model
-from ..utils.ModelingOCR import predict_text
+from ..utils.Modeling_OCR.prescription_extraction import predict_text
 
 load_dotenv()
 
