@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import MedicalCareExtractedData from "../../models/MedicalCareExtractedData.ts";
 
 interface MedicalFormDataViewerProps {
@@ -9,7 +9,11 @@ interface MedicalFormDataViewerProps {
 export default function MedicalFormDataViewer({ data, onSave }: MedicalFormDataViewerProps) {
     const [imageData, setImageData] = useState<MedicalCareExtractedData>(data);
     const [isEditing, setIsEditing] = useState(false);
+    console.log(data);
+    useEffect(() => {
+        console.log(data.id_field);
 
+    }, []);
     const handleChange = (field: keyof MedicalCareExtractedData, value: string) => {
         setImageData((prev) => ({ ...prev, [field]: value }));
     };
@@ -27,6 +31,7 @@ export default function MedicalFormDataViewer({ data, onSave }: MedicalFormDataV
     return (
         <section className="container rounded-xl my-5 self-center">
             <h3 className="flex justify-center text-3xl p-4">Extracted Text</h3>
+            <p>{data}</p>
             <div className="grid grid-cols-2 py-4">
                 {[
                     { label: "Form ID", key: "id_field" },
