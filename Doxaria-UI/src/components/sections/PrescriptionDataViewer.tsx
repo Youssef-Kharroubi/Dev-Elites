@@ -56,8 +56,8 @@ export default function PrescriptionDataViewer({ data, onSave }: PrescriptionDat
                         <p className="text-xl font-bold mx-2 text-white">{imageData.drName}</p>
                     )}
         </span>
-                <span className=" justify-center p-1 text-xl text-gray-500 ">
-          Medicines:{" "}
+                <span className="justify-center p-1 text-xl text-gray-500">
+    Medicines:{" "}
                     {isEditing ? (
                         <input
                             type="text"
@@ -66,9 +66,17 @@ export default function PrescriptionDataViewer({ data, onSave }: PrescriptionDat
                             className="text-xl mx-1 text-white bg-dark rounded p-1"
                         />
                     ) : (
-                        <p className="text-xl font-bold mx-2 text-white">{imageData.medicines || "N/A"}</p>
+                        <ul className="text-xl font-bold mx-2 text-white">
+                            {imageData.medicines ? (
+                                imageData.medicines.split(", ").map((medicine, index) => (
+                                    <li key={index}>{medicine}</li>
+                                ))
+                            ) : (
+                                <p>N/A</p>
+                            )}
+                        </ul>
                     )}
-        </span>
+</span>
             </div>
             <div className="flex justify-end gap-4 p-4">
                 {isEditing ? (

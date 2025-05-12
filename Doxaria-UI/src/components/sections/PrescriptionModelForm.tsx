@@ -41,7 +41,19 @@ export default function PrescriptionModelForm (){
                 },
             });
             console.log('Backend response:', response.data);
-            setExtractedData(response.data);
+            const matches = response.data; // Array of objects
+            const medicines = matches
+                .filter((item: { best_match: string }) => item.best_match) // Keep non-empty best_match
+                .map((item: { best_match: string }) => item.best_match)
+                .join(", "); // Join with comma and space
+            setExtractedData({
+                name: extractedData?.name || exampleData.name,
+                drName: extractedData?.drName || exampleData.drName,
+                cin: extractedData?.cin || exampleData.cin,
+                invoiceNumber: extractedData?.invoiceNumber || exampleData.invoiceNumber,
+                medicines: medicines || "", // Set medicines or empty string
+            });
+
         }catch(error){
             console.error('Error sending image:', error);
             throw error;
