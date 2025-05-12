@@ -148,4 +148,18 @@ def predict_text(image_path, excel_path, classification_model, reader_easy_ocr):
             "best_match": best_match
         })
 
-    return json.dumps(output, indent=2)
+    # Convert output to a JSON-like string with unquoted keys
+    def to_unquoted_json(obj):
+        if isinstance(obj, list):
+            return "[" + ", ".join(to_unquoted_json(item) for item in obj) + "]"
+        if isinstance(obj, dict):
+            items = []
+            for key, value in obj.items():
+                # Escape quotes in values and wrap in quotes
+                if isinstance(value, str):
+                    value = f'"{value.replace('"', '\\"')}"'
+                items.append(f"{key}: {value}")
+            return "{" + ", ".join(items) + "}"
+        return str(obj)
+
+    return to_unquoted_json(output)
