@@ -155,10 +155,14 @@ def predict_text(image_path, excel_path, classification_model, reader_easy_ocr):
         if isinstance(obj, dict):
             items = []
             for key, value in obj.items():
-                # Escape quotes in values and wrap in quotes
+                # Format value: strings are quoted, others are not
                 if isinstance(value, str):
-                    value = f'"{value.replace('"', '\\"')}"'
-                items.append(f"{key}: {value}")
+                    # Escape double quotes in the value
+                    escaped_value = value.replace('"', '\\"')
+                    formatted_value = f'"{escaped_value}"'
+                else:
+                    formatted_value = str(value)
+                items.append(f"{key}: {formatted_value}")
             return "{" + ", ".join(items) + "}"
         return str(obj)
 
