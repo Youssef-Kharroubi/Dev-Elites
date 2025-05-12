@@ -2,12 +2,12 @@ import { useState } from "react";
 import MedicalCareExtractedData from "../../models/MedicalCareExtractedData.ts";
 
 interface MedicalFormDataViewerProps {
-    initialData: MedicalCareExtractedData;
+    data: MedicalCareExtractedData;
     onSave: (data: MedicalCareExtractedData) => void;
 }
 
-export default function MedicalFormDataViewer({ initialData, onSave }: MedicalFormDataViewerProps) {
-    const [imageData, setImageData] = useState<MedicalCareExtractedData>(initialData);
+export default function MedicalFormDataViewer({ data, onSave }: MedicalFormDataViewerProps) {
+    const [imageData, setImageData] = useState<MedicalCareExtractedData>(data);
     const [isEditing, setIsEditing] = useState(false);
 
     const handleChange = (field: keyof MedicalCareExtractedData, value: string) => {
@@ -20,7 +20,7 @@ export default function MedicalFormDataViewer({ initialData, onSave }: MedicalFo
     };
 
     const handleCancel = () => {
-        setImageData(initialData);
+        setImageData(data);
         setIsEditing(false);
     };
 
@@ -29,14 +29,14 @@ export default function MedicalFormDataViewer({ initialData, onSave }: MedicalFo
             <h3 className="flex justify-center text-3xl p-4">Extracted Text</h3>
             <div className="grid grid-cols-2 py-4">
                 {[
-                    { label: "Form ID", key: "id_form" },
-                    { label: "Subscriber Name", key: "subscriber_name" },
-                    { label: "CNAM", key: "cnam_code" },
-                    { label: "Registration Number", key: "registration_number" },
+                    { label: "Form ID", key: "id_field" },
+                    { label: "Subscriber Name", key: "adherent_name" },
+                    { label: "CNAM", key: "matricule_cnam" },
+                    { label: "Registration Number", key: "matricule_adherent" },
                     { label: "Cin/Passport", key: "cin_or_passport" },
-                    { label: "Address", key: "address" },
-                    { label: "Patient Name", key: "patient_name" },
-                    { label: "Birth Date", key: "birth_date" },
+                    { label: "Address", key: "adresse_adherent" },
+                    { label: "Patient Name", key: "malade_name" },
+                    { label: "Birth Date", key: "date_naissance" },
                 ].map(({ label, key }) => (
                     <span key={key} className=" justify-start p-1 text-xl text-gray-500 ">
             {label}:{" "}

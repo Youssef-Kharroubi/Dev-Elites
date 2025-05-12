@@ -21,8 +21,33 @@ export default function PrescriptionModelForm (){
     const [numberOfFiles, setNumberOfFiles] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [enableSubmit, setEnableSubmit] = useState(false);
+    const [enableSubmit, setEnableSubmit] = useState(true);
     const allowedFileTypes = [ 'image/png', 'image/jpeg', 'image/gif'];
+    const [extractedData, SetExtractedData] = useState<PrescriptionExtractedData | null>(null);
+
+    async function extractPrescription(){
+        const API_CALL = import.meta.env.VITE_EXTRACTION_PRESCRIPTION_DATA_API;
+        if (!selectedFile || selectedFile.length === 0) {
+            console.error('No file selected');
+            return;
+        }
+        const image = selectedFile[0];
+        const formData = new FormData();
+        formData.append('image', image);
+        try{
+            const response = await axios.post(API_CALL, formData,{
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            console.log('Backend response:', response.data);
+            SetExtractedData(response.data);
+        }catch(error){
+            console.error('Error sending image:', error);
+            throw error;
+        }
+    }
+
 
     const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files: FileList | null = event.target.files;
@@ -113,6 +138,7 @@ export default function PrescriptionModelForm (){
                         <div className="flex justify-end align-end">
                             <button type="button" name="submit" id="submit"
                                     disabled={!enableSubmit}
+                                    onClick={extractPrescription}
                                     className={`my-2 bg-light/10 border-0 ${
                                         enableSubmit ? 'hover:bg-light/30' : 'opacity-50 cursor-not-allowed'
                                     }`}>Submit !
@@ -147,7 +173,7 @@ export default function PrescriptionModelForm (){
 
 
                 </div>
-                <PrescriptionDataViewer initialData={exampleData} onSave={handleSaveData} />
+                <PrescriptionDataViewer key={JSON.stringify(extractedData)} data={extractedData || exampleData} onSave={handleSaveData} />
 
                 <div>
                     {fileType && (
