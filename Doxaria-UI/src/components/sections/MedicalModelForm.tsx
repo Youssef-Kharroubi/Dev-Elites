@@ -47,8 +47,11 @@ export default function MedicalModelForm (){
                    'Content-Type': 'multipart/form-data',
                },
            });
-           console.log('Backend response:', response.data);
-           setExtractedData(response.data);
+           const jsonString = response.data.replace(/(\w+)(?=:)/g, '"$1"');
+           const parsedData: MedicalCareExtractedData = JSON.parse(jsonString);
+           console.log('Parsed data:', parsedData);
+
+           setExtractedData(parsedData);
        }catch(error){
            console.error('Error sending image:', error);
            throw error;
