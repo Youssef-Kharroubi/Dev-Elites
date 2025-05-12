@@ -123,14 +123,25 @@ def predict_text(image_path, excel_path, classification_model, reader_easy_ocr):
                 else:
                     print(f"Word {idx + 1}: {recognized_text} (Skipped: Invalid or too short)")
 
-    output = []
+    output = {
+        "best_match": ""
+    }
+
+    # Process predicted texts to find the best match
     for pred in predicted_texts:
         matches = match_word_to_names(pred, name_list)
-        match_list = [{"name": matched_name, "similarity": similarity} for matched_name, similarity in
-                      matches] if matches else []
-        output.append({
-            "predicted_text": pred,
-            "matches": match_list
-        })
+        if matches:
+            # Sort matches by similarity (descending) and take the top one
+            best_match = max(matches, key=lambda x: x[1])
+            matched_name, similarity = best_match
+            # Use a similarity threshold (e.g., 0.8) to ensure quality
+            if similarity >= 0.8:
+                output["best_match"] = matched_name
+                print(f"Best match for '{pred}': {matched_name} (Similarity: {similarity:.2f})")
+                break  # Stop after finding the first high-confidence match
+            else:
+                print(f"No high-confidence match for '{pred}' (best similarity: {similarity:.2f})")
+        else:
+            print(f"No matches found for '{pred}'")
 
     return json.dumps(output, indent=2)
