@@ -99,6 +99,14 @@ def detect_all_words(image, lang, proximity_threshold=40, predicted_company="BH"
                 cropped_regions.append(cropped)
     return cropped_regions
 
+def format_unquoted_json(data):
+    """Format a dictionary as a JSON-like string with unquoted keys."""
+    def quote_value(value):
+        return f'"{value}"' if isinstance(value, str) else str(value)
+
+    items = [f"{key}: {quote_value(value)}" for key, value in data.items()]
+    return "{\n  " + ",\n  ".join(items) + "\n}"
+
 def extract_texts_from_images(cropped_regions):
     processor = TrOCRProcessor.from_pretrained("microsoft/trocr-large-handwritten")
     model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-large-handwritten")
@@ -160,7 +168,7 @@ def extract_texts_from_images(cropped_regions):
         "date_naissance": extracted_data["date_naissance"][0] if extracted_data["date_naissance"] else ""
     }
 
-    return json.dumps(normalized_data, ensure_ascii=False, indent=2)
+    return format_unquoted_json(normalized_data)
 
 #call of the code
 # extract_texts_from_images(cropped_text_regions)
