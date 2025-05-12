@@ -1,77 +1,132 @@
 import MedicalFormDataViewer from "./MedicalFormDataViewer.tsx";
 import { useState } from 'react';
+import MedicalCareExtractedData from "../../models/MedicalCareExtractedData.ts";
 import axios from "axios";
 
+
+const exampleData: MedicalCareExtractedData = {
+    id_form: "8753473",
+    subscriber_name: "Ben Chedli Hichem",
+    cnam_code: "1518695109",
+    registration_number: "686",
+    cin_or_passport: "04635293",
+    address: "32 RUE 8601 CHARGUIA 1 TUNIS",
+    patient_name: "Hichem Bchurg",
+    birth_date: "2002-02-02",
+};
+
+const handleSaveData = (data: MedicalCareExtractedData) => {
+    console.log("Saved data:", data);
+    // Implement actual save logic here (e.g., API call)
+};
+
 export default function MedicalModelForm (){
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [insuranceCompany,setInsuranceCompany] = useState("");
-    const [fileType, setFileType] = useState("");
+    const [selectedFile, setSelectedFile] = useState<FileList | null>(null);
+    const [insuranceCompany, setInsuranceCompany] = useState<string[]>([]);
+    const [fileType, setFileType] = useState<string>('');
+    const [numberOfFiles, setNumberOfFiles] = useState<number>(0);
     const [error, setError] = useState<string | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
-    const [enableSubmit, setEnableSubmit] = useState(false);
-    const allowedFileTypes = [ 'image/png', 'image/jpeg', 'image/gif'];
+    const [isUploading, setIsUploading] = useState<boolean>(false);
+    const [enableSubmit, setEnableSubmit] = useState<boolean>(false);
+    const allowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
 
-    const onFileChange = async  (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file && allowedFileTypes.includes(file.type)) {
-            setSelectedFile(file);
+    const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files: FileList | null = event.target.files;
+        setNumberOfFiles(files?.length || 0);
+
+        if (!files || files.length === 0) {
+            setError('Please select at least one file');
+            setSelectedFile(null);
+            return;
+        }
+
+        let allowed = true;
+        for (let i = 0; i < files.length; i++) {
+            if (!allowedFileTypes.includes(files[i].type)) {
+                console.log(`Invalid file type: ${files[i].type}`);
+                allowed = false;
+                break;
+            }
+        }
+
+        if (allowed) {
+            setSelectedFile(files);
+            await onFileUpload(files);
             setError(null);
-            await onFileUpload(file);
-
-
         } else {
             setSelectedFile(null);
-            setError('Please select a valid file type (SVG, PNG, JPG, or GIF)');
+            setError('Please select a valid file type (PNG, JPG, or GIF)');
         }
     };
-    const onFileUpload = async (file: any) => {
+    const onFileUpload = async (files: FileList | null) => {
         const API_URL = import.meta.env.VITE_CLASSIFICATION_API_ENDPOINT;
-        if (!file) {
+        if (!files || files.length === 0) {
             setError('Please select a file to upload');
             return;
         }
+
         setIsUploading(true);
         const formData = new FormData();
-        formData.append(
-            "image",
-            file,
-        );
-        try{
-            axios.post(API_URL, formData,{
+
+        for (let i = 0; i < files.length; i++) {
+            formData.append('images', files[i]);
+        }
+
+        try {
+            const response = await axios.post(API_URL, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                }}).then(
-                function(response){
-                    setFileType(response.data.document_type);
-                    setInsuranceCompany(response.data.insurance_company[0]);
-                    if (response.data.document_type.toLowerCase() === "medical care form") {
-                        setEnableSubmit(true);
-                    } else {
-                        setEnableSubmit(false);
-                    }
-                }
-            );
-        }catch (error:any) {
+                },
+            });
+
+            console.log('Response:', response.data);
+            const results = response.data.results;
+            const documentTypes = results.map((result: any) => result.document_type?.toLowerCase());
+            const insuranceCompanies = results.map((result: any) => result.insurance_company || 'Unknown');
+
+            const firstNonMedicalType = documentTypes.find((type: string) => type !== 'medical care form') || 'medical care form';
+            setFileType(firstNonMedicalType);
+            setInsuranceCompany(insuranceCompanies);
+
+            const allMedicalCareForms = documentTypes.every((type: string) => type === 'medical care form');
+            setEnableSubmit(allMedicalCareForms);
+        } catch (error: any) {
             console.error('Error uploading file:', error);
-            setError('Failed to upload file: ' + (error.response?.data?.error || error.message));
+            const errorMessage = error.response?.data?.error || error.message || 'Unknown error';
+            setError(`Failed to upload file: ${errorMessage}`);
         } finally {
-        setIsUploading(false);
+            setIsUploading(false);
         }
     };
     return (
         <section className="container">
             <div className="flex justify-center items-center my-5">
-                <h1 className="text-4xl text-light ">Here you can digitalize your Medical Care Form  docs!</h1>
+                <h1 className="text-4xl text-light ">Here you can digitalize your <span className="font-bold">Medical Care Form </span> docs!</h1>
             </div>
-            <div >
-                <h3 className=" flex justify-center items-center text-2xl my-5">Just upload your docs here!</h3>
+            <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-1">
+                    <h3 className=" flex justify-center items-center text-2xl my-5 ">Just upload your docs here!</h3>
                     {error && (
                         <div className="text-red-500 text-center mb-4">{error}</div>
                     )}
-                {isUploading && (
-                    <div className="text-white text-center mb-4">Uploading...</div>
-                )}
-                    <div className="flex items-center justify-center w-full">
+                    {isUploading && (
+                        <div className="text-white text-center mb-4">Uploading...</div>
+                    )}
+                    <div className="flex justify-between">
+                        <h3 className="m-2 place-content-center">Number Of Selected Files : {numberOfFiles} </h3>
+                        <div className="flex justify-end align-end">
+                            <button type="button" name="submit" id="submit"
+                                    disabled={!enableSubmit}
+                                    className={`my-2 bg-light/10 border-0 ${
+                                        enableSubmit ? 'hover:bg-light/30' : 'opacity-50 cursor-not-allowed'
+                                    }`}>Submit !
+                            </button>
+
+                        </div>
+                    </div>
+
+
+                    <div className="flex items-center justify-center w-full ">
                         <label htmlFor="dropzone-file"
                                className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -88,7 +143,7 @@ export default function MedicalModelForm (){
                             </div>
                             <input id="dropzone-file" type="file" onChange={onFileChange}
                                    className="hidden" accept="image/png,image/jpeg,image/gif"
-                                   disabled={isUploading}/>
+                                   disabled={isUploading} multiple/>
                         </label>
                     </div>
 
@@ -98,24 +153,21 @@ export default function MedicalModelForm (){
                             Privacy Policy
                         </a>.
                     </p>
-                <div className="flex justify-end align-end">
-                    <button type="button" name="submit" id="submit"
-                            disabled={!enableSubmit}
-                            className={`my-2 bg-light/10 border-0 ${
-                                enableSubmit ? 'hover:bg-light/30' : 'opacity-50 cursor-not-allowed'
-                            }`}>Submit !
-                    </button>
+
 
                 </div>
+                <div className="col-span-2 self-center"><MedicalFormDataViewer initialData={exampleData} onSave={handleSaveData} /></div>
+
             </div>
             <div>
-                {fileType && insuranceCompany &&(
-                    <div className="text-green-500 text-center mb-4 font-bold text-2xl"><span className="text-white ">Your file is :</span> {fileType} <br/>
-                        <span className="text-white"> Insurance company is </span> {insuranceCompany}
+                {fileType && insuranceCompany.length > 0 && (
+                    <div className="text-green-500 text-center mb-4 font-bold text-2xl">
+                        <span className="text-white">Your Files Contains : </span> {fileType} <br/>
+                        <span className="text-white">Insurance companies: </span> {insuranceCompany.join(', ')}
                     </div>
                 )}
             </div>
-            <MedicalFormDataViewer/>
+
 
         </section>
     );
