@@ -1,21 +1,30 @@
-
 Flask==2.3.3
 Werkzeug==2.3.7
 gunicorn==21.2.0
+flask-cors
 
-azureml-core
-transformers
-torch
+azureml-core==1.56.0
+azure-cosmos==4.5.1
 
+transformers>=4.44.0
+torch==2.1.2
+torchvision==0.16.2
+torchaudio==2.1.2
+
+ultralytics>=8.2.0
+easyocr==1.7.1
+opencv-python==4.9.0.80
 
 tensorflow==2.16.1
 numpy==1.26.4
-
-
+pandas==2.2.2
+thefuzz==0.20.0
 Pillow==10.2.0
-
+openpyxl==3.1.2
 
 requests==2.31.0
 python-dotenv==1.0.0
 
-flask-cors
+pyyaml==6.0.1
+scipy==1.12.0
+opencv-contrib-python==4.9.0.80

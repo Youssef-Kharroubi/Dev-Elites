@@ -13,3 +13,7 @@ __pycache__/
 src/models/
 *.h5
 *.pkl
+*.pt
+*.csv
+*.xlsx
+*.key

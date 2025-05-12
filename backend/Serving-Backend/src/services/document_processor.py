@@ -1,4 +1,4 @@
-from ..utils.insurer_classification import classify_images
+from ..utils.insurer_classification import classify_images, classify_images_internal
 from tensorflow.keras.models import load_model
 import os
 
@@ -13,4 +13,7 @@ class DocumentProcessor:
 
     def process_image(self, image_path):
         result = classify_images( self.binary_model,self.insurance_model,image_path)
+        return result
+    def process_image_internal(self, image_path):
+        result = classify_images_internal(self.binary_model,self.insurance_model,image_path)
         return result
