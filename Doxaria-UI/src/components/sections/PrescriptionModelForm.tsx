@@ -23,7 +23,7 @@ export default function PrescriptionModelForm (){
     const [isUploading, setIsUploading] = useState(false);
     const [enableSubmit, setEnableSubmit] = useState(true);
     const allowedFileTypes = [ 'image/png', 'image/jpeg', 'image/gif'];
-    const [extractedData, SetExtractedData] = useState<PrescriptionExtractedData | null>(null);
+    const [extractedData, setExtractedData] = useState<PrescriptionExtractedData | null>(null);
 
     async function extractPrescription(){
         const API_CALL = import.meta.env.VITE_EXTRACTION_PRESCRIPTION_DATA_API;
@@ -41,7 +41,7 @@ export default function PrescriptionModelForm (){
                 },
             });
             console.log('Backend response:', response.data);
-            SetExtractedData(response.data);
+            setExtractedData(response.data);
         }catch(error){
             console.error('Error sending image:', error);
             throw error;
