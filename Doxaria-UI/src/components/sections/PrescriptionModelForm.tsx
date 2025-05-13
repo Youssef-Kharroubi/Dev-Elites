@@ -49,7 +49,6 @@ export default function PrescriptionModelForm() {
             });
 
             const result = await response.json();
-
             if (response.ok) {
                 setSaveStatus({ type: 'success', message: result.message });
                 setExtractedData({
