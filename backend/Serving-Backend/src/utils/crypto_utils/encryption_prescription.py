@@ -9,7 +9,7 @@ load_dotenv()
 
 def store_prescription_document(decrypted_json: str):
     base_path = os.path.dirname(__file__)
-    fernet_key_path = os.path.join(base_path, '..', 'models', 'fernet.key')
+    fernet_key_path = os.path.join(base_path, '..', '..', 'models', 'fernet.key')
     DATABASE_URL = os.getenv('DATABASE_URL')
     DATABASE_KEY = os.getenv('DATABASE_KEY')
 
