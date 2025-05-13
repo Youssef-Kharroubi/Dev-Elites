@@ -2,7 +2,7 @@ from flask import request, jsonify
 from ..services.document_processor import DocumentProcessor
 from ..services.data_extraction_medical_care import Document_Extractor_Medical_care
 from ..services.data_extraction_prescription import Document_Extractor_Prescription
-from ..utils.crypto_utils.encryption_prescription import encrypt_and_store_json_data
+from ..utils.crypto_utils.encryption_prescription import store_prescription_document
 import os
 import json
 
@@ -67,7 +67,7 @@ def init_routes(app):
             return jsonify({"error": "Invalid or empty JSON data"}), 400
         try:
             decrypted_json = json.dumps(data)
-            encrypt_and_store_json_data(decrypted_json)
+            store_prescription_document(decrypted_json)
             return jsonify({"status": "success", "message": f"Prescription data for ID {data['id_medical_care_form']} saved successfully"}), 200
         except Exception as e:
             return jsonify({"error": f"Failed to save data: {str(e)}"}), 500
