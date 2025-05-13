@@ -7,7 +7,9 @@ from cryptography.fernet import Fernet
 
 load_dotenv()
 
-def store_prescription_document(decrypted_json: str, fernet_key_path: str = "../../models/fernet.key"):
+def store_prescription_document(decrypted_json: str):
+    base_path = os.path.dirname(__file__)
+    fernet_key_path = os.path.join(base_path, '..', '..', 'models', 'fernet.key')
     DATABASE_URL = os.getenv('DATABASE_URL')
     DATABASE_KEY = os.getenv('DATABASE_KEY')
 
@@ -52,5 +54,5 @@ def store_prescription_document(decrypted_json: str, fernet_key_path: str = "../
     container.create_item(body=document)
     print(f"Inserted prescription document for source ID: {original_id}")
 
-decrypted_doc = '{"id_medical_care_form": "18549", "medications": ["Lisinopril", "Metformin"]}'
-store_prescription_document(decrypted_doc)
+# decrypted_doc = '{"id_medical_care_form": "18549", "medications": ["Lisinopril", "Metformin"]}'
+# store_prescription_document(decrypted_doc)
