@@ -73,7 +73,7 @@ def init_routes(app):
         except Exception as e:
             return jsonify({"error": f"Failed to save data: {str(e)}"}), 500
     @app.route("/medical-care-data", methods=['POST'])
-    def save_prescription_extracted_data():
+    def save_medical_cate_extracted_data():
         if not request.is_json:
             return jsonify({"error": "Request must contain JSON data"}), 400
 
