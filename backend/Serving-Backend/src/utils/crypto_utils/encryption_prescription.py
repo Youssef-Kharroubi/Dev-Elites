@@ -26,7 +26,7 @@ def store_prescription_document(decrypted_json: str):
     cipher = Fernet(fernet_key)
 
     client = CosmosClient(DATABASE_URL, credential=DATABASE_KEY)
-    database = client.get_database_client("MedicalFormsDB")
+    database = client.get_database_client("insured-patients")
     container = database.get_container_client("prescriptions")
 
     try:
