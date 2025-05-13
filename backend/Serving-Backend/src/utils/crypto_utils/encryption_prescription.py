@@ -52,5 +52,5 @@ def store_prescription_document(decrypted_json: str, fernet_key_path: str = "../
     container.create_item(body=document)
     print(f"Inserted prescription document for source ID: {original_id}")
 
-decrypted_doc = '{"id_medical_care_form": "18549", "medications": ["Lisinopril", "Metformin"]}'
-store_prescription_document(decrypted_doc)
+# decrypted_doc = '{"id_medical_care_form": "18549", "medications": ["Lisinopril", "Metformin"]}'
+# store_prescription_document(decrypted_doc)
