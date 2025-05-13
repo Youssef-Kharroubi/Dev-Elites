@@ -11,10 +11,7 @@ const exampleData: PrescriptionExtractedData = {
     medicines: "Paracetamol, Ibuprofen",
 };
 
-const handleSaveData = (data: PrescriptionExtractedData) => {
-    console.log("Saved data:", data);
-    // Implement actual save logic here (e.g., API call)
-};
+
 
 export default function PrescriptionModelForm() {
     const [selectedFile, setSelectedFile] = useState<File[] | []>([]);
@@ -25,6 +22,47 @@ export default function PrescriptionModelForm() {
     const [enableSubmit, setEnableSubmit] = useState(true);
     const allowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
     const [extractedData, setExtractedData] = useState<PrescriptionExtractedData | null>(null);
+    const [saveStatus, setSaveStatus] = useState(null);
+
+
+
+
+    const handleSaveData = async (data: PrescriptionExtractedData & { id_medical_care_form: string; medications: string[] }) => {
+        if (!data.id_medical_care_form || !data.medications?.length) {
+            setSaveStatus({
+                type: 'error',
+                message: 'Invalid data: ID and medications are required',
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(import.meta.env.VITE_SAVE_PRESCRIPTION_DATA_API, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id_medical_care_form: data.id_medical_care_form,
+                    medications: data.medications,
+                }),
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                setSaveStatus({ type: 'success', message: result.message });
+                setExtractedData({
+                    name: data.name,
+                    drName: data.drName,
+                    medicines: data.medications.join(', '),
+                });
+            } else {
+                setSaveStatus({ type: 'error', message: result.error || 'Failed to save data' });
+            }
+        } catch (error) {
+            setSaveStatus({ type: 'error', message: `Error: ${error.message}` });
+        }
+    };
 
     async function extractPrescription() {
         const API_CALL = import.meta.env.VITE_EXTRACTION_PRESCRIPTION_DATA_API;
@@ -43,21 +81,14 @@ export default function PrescriptionModelForm() {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            console.log('Backend response:', response.data);
-            console.log('Response type:', typeof response.data);
-
-            // Parse unquoted-keys JSON-like string
             const jsonString = response.data.replace(/(\w+)(?=:)/g, '"$1"');
-            console.log('JSON string:', jsonString);
             const matches: { predicted_text: string; best_match: string }[] = JSON.parse(jsonString);
 
-            // Extract non-empty best_match values
             const medicines = matches
                 .filter((item) => item.best_match)
                 .map((item) => item.best_match)
                 .join(", ");
 
-            // Update extractedData
             setExtractedData({
                 name: extractedData?.name || exampleData.name,
                 drName: extractedData?.drName || exampleData.drName,
@@ -123,7 +154,6 @@ export default function PrescriptionModelForm() {
                 },
             });
 
-            console.log('Response:', response.data);
             let results = response.data.results;
             setFileType("prescription");
             for (var s of results) {
@@ -235,6 +265,11 @@ export default function PrescriptionModelForm() {
                         </div>
                     )}
                 </div>
+                {saveStatus && (
+                    <div style={{ color: saveStatus.type === 'success' ? 'green' : 'red' }}>
+                        {saveStatus.message}
+                    </div>
+                )}
             </div>
         </section>
     );
