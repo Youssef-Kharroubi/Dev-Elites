@@ -59,11 +59,11 @@ export default function PrescriptionDataViewer({ data, onSave }: PrescriptionDat
                 <span className="justify-center p-1 text-xl text-gray-500">
     Medicines:{" "}
                     {isEditing ? (
-                        <input
-                            type="text"
+                        <textarea
                             value={imageData.medicines || ""}
                             onChange={(e) => handleChange("medicines", e.target.value)}
-                            className="text-xl mx-1 text-white bg-dark rounded p-1"
+                            className="text-xl mx-1 text-white bg-dark rounded p-1 w-full min-h-[100px] resize-y"
+                            placeholder="Enter medicines (comma-separated)"
                         />
                     ) : (
                         <ul className="text-xl font-bold mx-2 text-white">
@@ -95,12 +95,20 @@ export default function PrescriptionDataViewer({ data, onSave }: PrescriptionDat
                         </button>
                     </>
                 ) : (
-                    <button
-                        onClick={() => setIsEditing(true)}
-                        className="px-4 text-content  p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200  "
-                    >
-                        Edit
-                    </button>
+                    <>
+                        <button
+                            onClick={() => setIsEditing(true)}
+                            className="px-4 text-content  p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200  "
+                        >
+                            Edit
+                        </button>
+                        <button
+                            onClick={() => handleSave()}
+                            className="px-4 text-content  p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200  "
+                        >
+                            Save
+                        </button>
+                    </>
                 )}
             </div>
         </section>
