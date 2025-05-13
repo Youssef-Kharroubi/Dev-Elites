@@ -154,7 +154,6 @@ export default function PrescriptionModelForm() {
                 },
             });
 
-            console.log('Response:', response.data);
             let results = response.data.results;
             setFileType("prescription");
             for (var s of results) {

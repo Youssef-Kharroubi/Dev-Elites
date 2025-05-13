@@ -30,7 +30,6 @@ export default function MedicalModelForm (){
     const [saveStatus, setSaveStatus] = useState(null);
 
     const handleSaveData = async (data: MedicalCareExtractedData) => {
-        // Validate required fields
         if (!data.id_field || !data.matricule_cnam) {
             setSaveStatus({
                 type: 'error',
@@ -38,9 +37,8 @@ export default function MedicalModelForm (){
             });
             return;
         }
-
         try {
-            const response = await fetch(import.meta.env.VITE_SAVE_MEDICAL_CARE_DATA_API, {
+            const response = await fetch(import.meta.env.VITE_SAVE_MEDICAL_CARE_DATA_API , {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -52,9 +50,9 @@ export default function MedicalModelForm (){
             if (response.ok) {
                 setSaveStatus({
                     type: 'success',
-                    message: result.message || `Medical care data for ID ${data.id_field} saved successfully`,
+                    message: result.message || `Medical care data saved successfully`,
                 });
-                setExtractedData(data); // Update extractedData with saved data
+                setExtractedData(data);
             } else {
                 setSaveStatus({
                     type: 'error',
@@ -144,7 +142,6 @@ export default function MedicalModelForm (){
                 },
             });
 
-            console.log('Response:', response.data);
             const results = response.data.results;
             const documentTypes = results.map((result: any) => result.document_type?.toLowerCase());
             const insuranceCompanies = results.map((result: any) => result.insurance_company || 'Unknown');
