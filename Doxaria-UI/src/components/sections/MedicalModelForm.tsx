@@ -15,9 +15,7 @@ const exampleData: MedicalCareExtractedData = {
     date_naissance: "2002-02-02",
 };
 
-const handleSaveData = (data: MedicalCareExtractedData) => {
-    console.log("Saved data:", data);
-};
+
 
 export default function MedicalModelForm (){
     const [selectedFile, setSelectedFile] = useState<FileList | null>(null);
@@ -29,8 +27,48 @@ export default function MedicalModelForm (){
     const [enableSubmit, setEnableSubmit] = useState<boolean>(false);
     const allowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
     const [extractedData, setExtractedData] = useState<MedicalCareExtractedData | null>(null);
+    const [saveStatus, setSaveStatus] = useState(null);
 
+    const handleSaveData = async (data: MedicalCareExtractedData) => {
+        // Validate required fields
+        if (!data.id_field || !data.matricule_cnam) {
+            setSaveStatus({
+                type: 'error',
+                message: 'Invalid data: ID Field and Matricule CNAM are required',
+            });
+            return;
+        }
 
+        try {
+            const response = await fetch(import.meta.env.VITE_SAVE_MEDICAL_CARE_DATA_API, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                setSaveStatus({
+                    type: 'success',
+                    message: result.message || `Medical care data for ID ${data.id_field} saved successfully`,
+                });
+                setExtractedData(data); // Update extractedData with saved data
+            } else {
+                setSaveStatus({
+                    type: 'error',
+                    message: result.error || 'Failed to save data',
+                });
+            }
+        } catch (error: any) {
+            console.error('Error saving data:', error);
+            setSaveStatus({
+                type: 'error',
+                message: `Error: ${error.message}`,
+            });
+        }
+    };
 
     async function submitImage(){
         const API_CALL = import.meta.env.VITE_EXTRACTION_MEIDCAL_CARE_DATA_API;
@@ -184,8 +222,13 @@ export default function MedicalModelForm (){
 
 
                 </div>
-                <div className="col-span-2 self-center"><MedicalFormDataViewer key={JSON.stringify(extractedData)} data={extractedData || exampleData} onSave={handleSaveData} /></div>
 
+                <div className="col-span-2 self-center"><MedicalFormDataViewer key={JSON.stringify(extractedData)} data={extractedData || exampleData} onSave={handleSaveData} /></div>
+                {saveStatus && (
+                    <div style={{ color: saveStatus.type === 'success' ? 'green' : 'red' }}>
+                        {saveStatus.message}
+                    </div>
+                )}
             </div>
             <div>
                 {fileType && insuranceCompany.length > 0 && (
@@ -194,6 +237,7 @@ export default function MedicalModelForm (){
                         <span className="text-white">Insurance companies: </span> {insuranceCompany.join(', ')}
                     </div>
                 )}
+
             </div>
 
 
