@@ -99,6 +99,14 @@ def detect_all_words(image, lang, proximity_threshold=40, predicted_company="BH"
                 cropped_regions.append(cropped)
     return cropped_regions
 
+def format_unquoted_json(data):
+    """Format a dictionary as a JSON-like string with unquoted keys."""
+    def quote_value(value):
+        return f'"{value}"' if isinstance(value, str) else str(value)
+
+    items = [f"{key}: {quote_value(value)}" for key, value in data.items()]
+    return "{\n  " + ",\n  ".join(items) + "\n}"
+
 def extract_texts_from_images(cropped_regions):
     processor = TrOCRProcessor.from_pretrained("microsoft/trocr-large-handwritten")
     model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-large-handwritten")
@@ -140,16 +148,27 @@ def extract_texts_from_images(cropped_regions):
                 predicted_text = re.sub(r'[^0-9/]', '', predicted_text)
                 extracted_data["date_naissance"].append(predicted_text)
             elif label.startswith("id") or "id_" in label:
-                predicted_text = re.sub(r'[^0-9/]', '', predicted_text)
+                predicted_text = re.sub(r'[^0-9]', '', predicted_text)
                 extracted_data["id_field"].append(predicted_text)
 
             print(f"Extracted text from {label}: {predicted_text}")
 
         except Exception as e:
             print(f"Error processing {label}: {str(e)}")
-            extracted_data.setdefault("errors", []).append({label: "Error: Could not extract text"})
 
-    return json.dumps(extracted_data, ensure_ascii=False, indent=2)
+    # Normalize the extracted data to single strings
+    normalized_data = {
+        "id_field": extracted_data["id_field"][0] if extracted_data["id_field"] else "",
+        "adherent_name": " ".join(filter(None, extracted_data["adherent_name"])),
+        "matricule_cnam": extracted_data["matricule_cnam"][0] if extracted_data["matricule_cnam"] else "",
+        "matricule_adherent": extracted_data["matricule_adherent"][0] if extracted_data["matricule_adherent"] else "",
+        "cin_ou_passeport": extracted_data["cin_ou_passeport"][0] if extracted_data["cin_ou_passeport"] else "",
+        "adresse_adherent": ", ".join(filter(None, extracted_data["adresse_adherent"])),
+        "malade_name": " ".join(filter(None, extracted_data["malade_name"])),
+        "date_naissance": extracted_data["date_naissance"][0] if extracted_data["date_naissance"] else ""
+    }
+
+    return format_unquoted_json(normalized_data)
 
 #call of the code
 # extract_texts_from_images(cropped_text_regions)

@@ -123,14 +123,47 @@ def predict_text(image_path, excel_path, classification_model, reader_easy_ocr):
                 else:
                     print(f"Word {idx + 1}: {recognized_text} (Skipped: Invalid or too short)")
 
+    # Initialize output list
     output = []
+
+    # Process each predicted text to find the best match
     for pred in predicted_texts:
         matches = match_word_to_names(pred, name_list)
-        match_list = [{"name": matched_name, "similarity": similarity} for matched_name, similarity in
-                      matches] if matches else []
+        best_match = ""
+        if matches:
+            # Sort matches by similarity (descending) and take the top one
+            top_match = max(matches, key=lambda x: x[1])
+            matched_name, similarity = top_match
+            # Use a similarity threshold (e.g., 0.8) to ensure quality
+            if similarity >= 0.8:
+                best_match = matched_name
+                print(f"Best match for '{pred}': {matched_name} (Similarity: {similarity:.2f})")
+            else:
+                print(f"No high-confidence match for '{pred}' (best similarity: {similarity:.2f})")
+        else:
+            print(f"No matches found for '{pred}'")
+
         output.append({
             "predicted_text": pred,
-            "matches": match_list
+            "best_match": best_match
         })
 
-    return json.dumps(output, indent=2)
+    # Convert output to a JSON-like string with unquoted keys
+    def to_unquoted_json(obj):
+        if isinstance(obj, list):
+            return "[" + ", ".join(to_unquoted_json(item) for item in obj) + "]"
+        if isinstance(obj, dict):
+            items = []
+            for key, value in obj.items():
+                # Format value: strings are quoted, others are not
+                if isinstance(value, str):
+                    # Escape double quotes in the value
+                    escaped_value = value.replace('"', '\\"')
+                    formatted_value = f'"{escaped_value}"'
+                else:
+                    formatted_value = str(value)
+                items.append(f"{key}: {formatted_value}")
+            return "{" + ", ".join(items) + "}"
+        return str(obj)
+
+    return to_unquoted_json(output)
