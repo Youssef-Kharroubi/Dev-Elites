@@ -28,7 +28,7 @@ export default function MedicalModelForm (){
     const [isUploading, setIsUploading] = useState<boolean>(false);
     const [enableSubmit, setEnableSubmit] = useState<boolean>(false);
     const allowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
-    const [extractedData, SetExtractedData] = useState<MedicalCareExtractedData | null>(null);
+    const [extractedData, setExtractedData] = useState<MedicalCareExtractedData | null>(null);
 
 
 
@@ -47,8 +47,11 @@ export default function MedicalModelForm (){
                    'Content-Type': 'multipart/form-data',
                },
            });
-           console.log('Backend response:', response.data);
-           SetExtractedData(response.data);
+           const jsonString = response.data.replace(/(\w+)(?=:)/g, '"$1"');
+           const parsedData: MedicalCareExtractedData = JSON.parse(jsonString);
+           console.log('Parsed data:', parsedData);
+
+           setExtractedData(parsedData);
        }catch(error){
            console.error('Error sending image:', error);
            throw error;

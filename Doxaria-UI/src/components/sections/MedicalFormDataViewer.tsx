@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import MedicalCareExtractedData from "../../models/MedicalCareExtractedData.ts";
 
 interface MedicalFormDataViewerProps {
@@ -9,7 +9,11 @@ interface MedicalFormDataViewerProps {
 export default function MedicalFormDataViewer({ data, onSave }: MedicalFormDataViewerProps) {
     const [imageData, setImageData] = useState<MedicalCareExtractedData>(data);
     const [isEditing, setIsEditing] = useState(false);
+    console.log(data);
+    useEffect(() => {
+        console.log(data.id_field);
 
+    }, []);
     const handleChange = (field: keyof MedicalCareExtractedData, value: string) => {
         setImageData((prev) => ({ ...prev, [field]: value }));
     };
@@ -33,25 +37,28 @@ export default function MedicalFormDataViewer({ data, onSave }: MedicalFormDataV
                     { label: "Subscriber Name", key: "adherent_name" },
                     { label: "CNAM", key: "matricule_cnam" },
                     { label: "Registration Number", key: "matricule_adherent" },
-                    { label: "Cin/Passport", key: "cin_or_passport" },
+                    { label: "Cin/Passport", key: "cin_ou_passport" },
                     { label: "Address", key: "adresse_adherent" },
                     { label: "Patient Name", key: "malade_name" },
                     { label: "Birth Date", key: "date_naissance" },
                 ].map(({ label, key }) => (
-                    <span key={key} className=" justify-start p-1 text-xl text-gray-500 ">
-            {label}:{" "}
+                    <span key={key} className="justify-start p-1 text-xl text-gray-500">
+    {label}:{" "}
                         {isEditing ? (
                             <input
                                 type="text"
-                                value={imageData[key as keyof MedicalCareExtractedData]}
+                                value={imageData[key as keyof MedicalCareExtractedData] || ""}
                                 onChange={(e) => handleChange(key as keyof MedicalCareExtractedData, e.target.value)}
-                                className="text-xl mx-1 text-white bg-dark  "
+                                className="text-xl mx-1 text-white bg-dark"
                             />
                         ) : (
-                            <p className="text-xl mx-2 text-white">{imageData[key as keyof MedicalCareExtractedData]}</p>
+                            <p className="text-xl mx-2 text-white">
+                                {imageData[key as keyof MedicalCareExtractedData] || imageData[key as keyof MedicalCareExtractedData] === ""
+                                    ? imageData[key as keyof MedicalCareExtractedData]
+                                    : "N/A"}
+                            </p>
                         )}
-
-          </span>
+</span>
 
                 ))}
             </div>
