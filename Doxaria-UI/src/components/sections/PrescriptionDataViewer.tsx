@@ -12,13 +12,31 @@ export default function PrescriptionDataViewer({ data, onSave }: PrescriptionDat
     const [imageData, setImageData] = useState<PrescriptionExtractedData>(data);
     const [isEditing, setIsEditing] = useState(false);
 
-    const handleChange = (field: keyof PrescriptionExtractedData, value: string) => {
-        setImageData((prev) => ({ ...prev, [field]: value }));
+    const handleSave = () => {
+        if (!imageData.medicines || !imageData.medicines.trim()) {
+            alert('Please provide at least one medication.');
+            return;
+        }
+
+        const medications = imageData.medicines
+            .split(',')
+            .map((med) => med.trim())
+            .filter((med) => med);
+
+        const idMedicalCareForm = `PRES-${Date.now()}`;
+
+        const updatedData = {
+            ...imageData,
+            id_medical_care_form: idMedicalCareForm,
+            medications,
+        };
+
+        onSave(updatedData);
+        setIsEditing(false);
     };
 
-    const handleSave = () => {
-        onSave(imageData);
-        setIsEditing(false);
+    const handleChange = (field: keyof PrescriptionExtractedData, value: string) => {
+        setImageData((prev) => ({ ...prev, [field]: value }));
     };
 
     const handleCancel = () => {

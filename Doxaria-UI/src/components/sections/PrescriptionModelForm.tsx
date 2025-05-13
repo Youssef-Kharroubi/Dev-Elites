@@ -11,9 +11,28 @@ const exampleData: PrescriptionExtractedData = {
     medicines: "Paracetamol, Ibuprofen",
 };
 
-const handleSaveData = (data: PrescriptionExtractedData) => {
-    console.log("Saved data:", data);
-    // Implement actual save logic here (e.g., API call)
+
+const handleSaveData = async (data: any ) => {
+    const SAVE_PRESCRIPTION_URL = import.meta.env.VITE_SAVE_PRESCRIPTION_DATA_API;
+    try {
+        const response = await fetch(SAVE_PRESCRIPTION_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data || extractedData || exampleData), // Use provided data, extractedData, or fallback
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            setSaveStatus({ type: 'success', message: result.message });
+        } else {
+            setSaveStatus({ type: 'error', message: result.error || 'Failed to save data' });
+        }
+    } catch (error) {
+        setSaveStatus({ type: 'error', message: `Error: ${error.message}` });
+    }
 };
 
 export default function PrescriptionModelForm() {
@@ -25,6 +44,7 @@ export default function PrescriptionModelForm() {
     const [enableSubmit, setEnableSubmit] = useState(true);
     const allowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
     const [extractedData, setExtractedData] = useState<PrescriptionExtractedData | null>(null);
+    const [saveStatus, setSaveStatus] = useState(null);
 
     async function extractPrescription() {
         const API_CALL = import.meta.env.VITE_EXTRACTION_PRESCRIPTION_DATA_API;
@@ -43,21 +63,14 @@ export default function PrescriptionModelForm() {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            console.log('Backend response:', response.data);
-            console.log('Response type:', typeof response.data);
-
-            // Parse unquoted-keys JSON-like string
             const jsonString = response.data.replace(/(\w+)(?=:)/g, '"$1"');
-            console.log('JSON string:', jsonString);
             const matches: { predicted_text: string; best_match: string }[] = JSON.parse(jsonString);
 
-            // Extract non-empty best_match values
             const medicines = matches
                 .filter((item) => item.best_match)
                 .map((item) => item.best_match)
                 .join(", ");
 
-            // Update extractedData
             setExtractedData({
                 name: extractedData?.name || exampleData.name,
                 drName: extractedData?.drName || exampleData.drName,
@@ -235,6 +248,11 @@ export default function PrescriptionModelForm() {
                         </div>
                     )}
                 </div>
+                {saveStatus && (
+                    <div style={{ color: saveStatus.type === 'success' ? 'green' : 'red' }}>
+                        {saveStatus.message}
+                    </div>
+                )}
             </div>
         </section>
     );
