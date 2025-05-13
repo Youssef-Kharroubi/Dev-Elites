@@ -7,7 +7,9 @@ from cryptography.fernet import Fernet
 
 load_dotenv()
 
-def store_prescription_document(decrypted_json: str, fernet_key_path: str = "../../models/fernet.key"):
+def store_prescription_document(decrypted_json: str):
+    base_path = os.path.dirname(__file__)
+    fernet_key_path = os.path.join(base_path, '..', 'models', 'cleaned_file.xlsx')
     DATABASE_URL = os.getenv('DATABASE_URL')
     DATABASE_KEY = os.getenv('DATABASE_KEY')
 
