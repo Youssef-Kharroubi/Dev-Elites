@@ -12,28 +12,6 @@ const exampleData: PrescriptionExtractedData = {
 };
 
 
-const handleSaveData = async (data: any ) => {
-    const SAVE_PRESCRIPTION_URL = import.meta.env.VITE_SAVE_PRESCRIPTION_DATA_API;
-    try {
-        const response = await fetch(SAVE_PRESCRIPTION_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data || extractedData || exampleData), // Use provided data, extractedData, or fallback
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            setSaveStatus({ type: 'success', message: result.message });
-        } else {
-            setSaveStatus({ type: 'error', message: result.error || 'Failed to save data' });
-        }
-    } catch (error) {
-        setSaveStatus({ type: 'error', message: `Error: ${error.message}` });
-    }
-};
 
 export default function PrescriptionModelForm() {
     const [selectedFile, setSelectedFile] = useState<File[] | []>([]);
@@ -45,6 +23,47 @@ export default function PrescriptionModelForm() {
     const allowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
     const [extractedData, setExtractedData] = useState<PrescriptionExtractedData | null>(null);
     const [saveStatus, setSaveStatus] = useState(null);
+
+
+
+
+    const handleSaveData = async (data: PrescriptionExtractedData & { id_medical_care_form: string; medications: string[] }) => {
+        if (!data.id_medical_care_form || !data.medications?.length) {
+            setSaveStatus({
+                type: 'error',
+                message: 'Invalid data: ID and medications are required',
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(import.meta.env.VITE_SAVE_PRESCRIPTION_DATA_API, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id_medical_care_form: data.id_medical_care_form,
+                    medications: data.medications,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                setSaveStatus({ type: 'success', message: result.message });
+                setExtractedData({
+                    name: data.name,
+                    drName: data.drName,
+                    medicines: data.medications.join(', '),
+                });
+            } else {
+                setSaveStatus({ type: 'error', message: result.error || 'Failed to save data' });
+            }
+        } catch (error) {
+            setSaveStatus({ type: 'error', message: `Error: ${error.message}` });
+        }
+    };
 
     async function extractPrescription() {
         const API_CALL = import.meta.env.VITE_EXTRACTION_PRESCRIPTION_DATA_API;
