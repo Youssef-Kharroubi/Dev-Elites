@@ -6,7 +6,10 @@ from ..utils.crypto_utils.encryption_prescription import store_prescription_docu
 from ..utils.crypto_utils.encryption_medical import encrypt_and_store_json_data
 import os
 import json
+import logging
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
 def init_routes(app):
     processor = DocumentProcessor()
     extractor_medical_care = Document_Extractor_Medical_care()
@@ -80,9 +83,13 @@ def init_routes(app):
         data = request.get_json()
         if data is None or not isinstance(data, dict):
             return jsonify({"error": "Invalid or empty JSON data"}), 400
+        if "id_field" not in data or "matricule_cnam" not in data:
+            return jsonify({"error": "Invalid data: 'id_field' and 'matricule_cnam' are required"}), 400
+
         try:
-            decrypted_json = json.dumps(data)
-            encrypt_and_store_json_data(decrypted_json)
-            return jsonify({"status": "success", "message": f"Prescription data for ID {data['id_medical_care_form']} saved successfully"}), 200
+            logger.info(f"Received data: {data}")
+            encrypt_and_store_json_data(data)
+            return jsonify({"status": "success", "message": f"Medical care data for ID {data['id_field']} saved successfully"}), 200
         except Exception as e:
+            logger.error(f"Error saving medical care data: {str(e)}")
             return jsonify({"error": f"Failed to save data: {str(e)}"}), 500
