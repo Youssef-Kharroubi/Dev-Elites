@@ -12,7 +12,7 @@ function App() {
 
   return (
       <Router>
-          <div className="min-h-screen bg-dark text-light">
+          <div className="min-h-screen bg-light text-dark">
               <Header/>
               <Routes>
                   <Route path="/" element={<Home />}/>
