@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import axios from "axios";
 import PrescriptionDataViewer from "./PrescriptionDataViewer.tsx";
 import PrescriptionExtractedData from "../../models/PrescriptionExtractedData.ts";
@@ -19,11 +19,11 @@ export default function PrescriptionModelForm() {
     const [numberOfFiles, setNumberOfFiles] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
-    const [enableSubmit, setEnableSubmit] = useState(true);
+    const [enableSubmit, setEnableSubmit] = useState<boolean>(false);
     const allowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
     const [extractedData, setExtractedData] = useState<PrescriptionExtractedData | null>(null);
     const [saveStatus, setSaveStatus] = useState(null);
-
+    const [previewUrl, setPreviewUrl] = useState(null);
 
 
 
@@ -50,7 +50,7 @@ export default function PrescriptionModelForm() {
 
             const result = await response.json();
             if (response.ok) {
-                setSaveStatus({ type: 'success', message: result.message });
+                setSaveStatus({ type: 'success', message: "Prescription data saved successfully" });
                 setExtractedData({
                     name: data.name,
                     drName: data.drName,
@@ -113,7 +113,8 @@ export default function PrescriptionModelForm() {
             setSelectedFile([]);
             return;
         }
-
+        const url = URL.createObjectURL(files[0]);
+        setPreviewUrl(url);
         let allowed = true;
         for (let i = 0; i < files.length; i++) {
             if (!allowedFileTypes.includes(files[i].type)) {
@@ -122,6 +123,7 @@ export default function PrescriptionModelForm() {
                 break;
             }
         }
+        setEnableSubmit(allowed);
 
         if (allowed) {
             setSelectedFile(Array.from(files));
@@ -132,7 +134,13 @@ export default function PrescriptionModelForm() {
             setError('Please select a valid file type (PNG, JPG, or GIF)');
         }
     };
-
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
     const onFileUpload = async (files: FileList | null) => {
         const API_URL = import.meta.env.VITE_CLASSIFICATION_API_ENDPOINT;
         if (!files || files.length === 0) {
@@ -176,11 +184,11 @@ export default function PrescriptionModelForm() {
     return (
         <section className="container">
             <div className="flex justify-center items-center my-5">
-                <h1 className="text-4xl text-light">Here you can digitalize your Prescription docs!</h1>
+                <h1 className="text-4xl text-primary">Here you can digitalize your Prescription docs!</h1>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <h3 className="flex justify-center items-center text-2xl my-5">Just upload your docs here!</h3>
+                    <h3 className="flex justify-center items-center text-2xl my-5 content-center text-secondary"> UPLOAD YOUR DOCS HERE</h3>
                     {error && (
                         <div className="text-red-500 text-center mb-4">{error}</div>
                     )}
@@ -197,8 +205,8 @@ export default function PrescriptionModelForm() {
                                 id="submit"
                                 disabled={!enableSubmit}
                                 onClick={extractPrescription}
-                                className={`my-2 bg-light/10 border-0 ${
-                                    enableSubmit ? 'hover:bg-light/30' : 'opacity-50 cursor-not-allowed'
+                                className={`my-2 bg-light/10  border-1 border-cyan ${
+                                    enableSubmit ? 'hover:bg-primary/30 hover:border-primary' : 'opacity-50 cursor-not-allowed'
                                 }`}
                             >
                                 Submit!
@@ -208,31 +216,39 @@ export default function PrescriptionModelForm() {
                     <div className="flex items-center justify-center w-full">
                         <label
                             htmlFor="dropzone-file"
-                            className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
+                            className="flex flex-col items-center justify-center w-full h-full border-2 border-gray-300 border-dashed rounded-lg cursor-pointer dark:bg-light/40 hover:bg-gray-100 dark:border-gray-400 dark:hover:border-gray-400 dark:hover:bg-gray-200"
                         >
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg
-                                    className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
-                                    aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 20 16"
-                                >
-                                    <path
-                                        stroke="currentColor"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                                    />
-                                </svg>
-                                <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                                    <span className="font-semibold">Click to upload</span> or drag and drop
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    PNG, JPG or GIF (MAX. 800x400px)
-                                </p>
-                            </div>
+                            {previewUrl ? (
+                                <img
+                                    src={previewUrl}
+                                    alt="Uploaded preview"
+                                    className="max-h-full max-w-full object-contain p-2"
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <svg
+                                        className="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"
+                                        aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 20 16"
+                                    >
+                                        <path
+                                            stroke="currentColor"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                                        />
+                                    </svg>
+                                    <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                                        <span className="font-semibold">Click to upload</span> or drag and drop
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        PNG, JPG or GIF (MAX. 800x400px)
+                                    </p>
+                                </div>
+                            )}
                             <input
                                 id="dropzone-file"
                                 type="file"

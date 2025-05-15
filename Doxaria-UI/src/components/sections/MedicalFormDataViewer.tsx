@@ -34,7 +34,7 @@ export default function MedicalFormDataViewer({ data, onSave }: MedicalFormDataV
 
     return (
         <section className="container rounded-xl my-5 self-center">
-                <h3 className="flex justify-center text-3xl p-4">Extracted Text</h3>
+                <h3 className="flex justify-center text-3xl  p-4 text-secondary">EXTRACTED TEXT</h3>
                 <div className="grid grid-cols-2 py-4">
                         {[
                                 {label: "Form ID", key: "id_field"},
@@ -53,10 +53,10 @@ export default function MedicalFormDataViewer({ data, onSave }: MedicalFormDataV
                                             type="text"
                                             value={imageData[key as keyof MedicalCareExtractedData] || ""}
                                             onChange={(e) => handleChange(key as keyof MedicalCareExtractedData, e.target.value)}
-                                            className="text-xl mx-1 text-white bg-dark"
+                                            className="text-xl mx-1 font-bold text-primary bg-light"
                                         />
                                     ) : (
-                                        <p className="text-xl mx-2 text-white">
+                                        <p className="text-xl font-bold mx-2 text-primary">
                                                 {imageData[key as keyof MedicalCareExtractedData] || imageData[key as keyof MedicalCareExtractedData] === ""
                                                     ? imageData[key as keyof MedicalCareExtractedData]
                                                     : "N/A"}
@@ -71,13 +71,13 @@ export default function MedicalFormDataViewer({ data, onSave }: MedicalFormDataV
                             <>
                                     <button
                                         onClick={handleSave}
-                                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                                        className="px-4   p-2 rounded-md hover:bg-cyan/20 hover:text-dark transition-colors ease-in-out duration-200 bg-cyan/40 text-primary  "
                                     >
                                             Save
                                     </button>
                                     <button
                                         onClick={handleCancel}
-                                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                                        className="px-4   p-2 rounded-md hover:bg-cyan/20 hover:text-dark transition-colors ease-in-out duration-200 bg-cyan/40 text-primary  "
                                     >
                                             Cancel
                                     </button>
@@ -86,13 +86,13 @@ export default function MedicalFormDataViewer({ data, onSave }: MedicalFormDataV
                             <>
                                 <button
                                 onClick={() => setIsEditing(true)}
-                     className="px-4 text-content  p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200 "
+                     className="px-4   p-2 rounded-md hover:bg-cyan/20 hover:text-dark transition-colors ease-in-out duration-200 bg-cyan/40 text-primary  "
                 >
                         Edit
                 </button>
                 <button
                     onClick={() => handleSave()}
-                    className="px-4 text-content  p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200  "
+                    className="px-4   p-2 rounded-md hover:bg-cyan/20 hover:text-dark transition-colors ease-in-out duration-200 bg-cyan/40 text-primary   "
                 >
                         Save
                 </button>

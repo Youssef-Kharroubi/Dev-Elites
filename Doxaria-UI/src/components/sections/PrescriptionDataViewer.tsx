@@ -46,7 +46,7 @@ export default function PrescriptionDataViewer({ data, onSave }: PrescriptionDat
 
     return (
         <section className="container rounded-xl my-5 self-center">
-            <h3 className="flex justify-center text-3xl  p-4">Extracted Text</h3>
+            <h3 className="flex justify-center text-3xl  p-4 text-secondary">EXTRACTED TEXT</h3>
             <div className="grid grid-cols-2 py-4">
         <span className=" justify-start p-1 text-xl text-gray-500">
           Patient Name:{" "}
@@ -55,10 +55,10 @@ export default function PrescriptionDataViewer({ data, onSave }: PrescriptionDat
                     type="text"
                     value={imageData.name}
                     onChange={(e) => handleChange("name", e.target.value)}
-                    className="text-xl mx-1 text-white bg-dark "
+                    className="text-xl mx-1 font-bold text-primary bg-light  "
                 />
             ) : (
-                <p className="text-xl font-bold mx-2 text-white">{imageData.name}</p>
+                <p className="text-xl font-bold mx-2 text-primary">{imageData.name}</p>
             )}
         </span>
                 <span className=" justify-center p-1 text-xl text-gray-500 ">
@@ -68,23 +68,23 @@ export default function PrescriptionDataViewer({ data, onSave }: PrescriptionDat
                             type="text"
                             value={imageData.drName}
                             onChange={(e) => handleChange("drName", e.target.value)}
-                            className="text-xl mx-1 text-white bg-dark rounded "
+                            className="text-xl mx-1 font-bold text-primary bg-light  rounded "
                         />
                     ) : (
-                        <p className="text-xl font-bold mx-2 text-white">{imageData.drName}</p>
+                        <p className="text-xl font-bold mx-2 text-primary">{imageData.drName}</p>
                     )}
         </span>
-                <span className="justify-center p-1 text-xl text-gray-500">
+                <span className="justify-center  p-1 text-xl text-gray-500">
     Medicines:{" "}
                     {isEditing ? (
                         <textarea
                             value={imageData.medicines || ""}
                             onChange={(e) => handleChange("medicines", e.target.value)}
-                            className="text-xl mx-1 text-white bg-dark rounded p-1 w-full min-h-[100px] resize-y"
+                            className="text-xl mx-1 font-bold text-primary  rounded bg-light p-1 w-full min-h-[100px] resize-y"
                             placeholder="Enter medicines (comma-separated)"
                         />
                     ) : (
-                        <ul className="text-xl font-bold mx-2 text-white">
+                        <ul className="text-xl font-bold mx-2 text-primary">
                             {imageData.medicines ? (
                                 imageData.medicines.split(", ").map((medicine, index) => (
                                     <li key={index}>{medicine}</li>
@@ -101,13 +101,13 @@ export default function PrescriptionDataViewer({ data, onSave }: PrescriptionDat
                     <>
                         <button
                             onClick={handleSave}
-                            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                            className="px-4   p-2 rounded-md hover:bg-cyan/20 hover:text-dark transition-colors ease-in-out duration-200 bg-cyan/40 text-primary  "
                         >
                             Save
                         </button>
                         <button
                             onClick={handleCancel}
-                            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                            className="px-4   p-2 rounded-md hover:bg-cyan/20 hover:text-dark transition-colors ease-in-out duration-200 bg-cyan/40 text-primary   "
                         >
                             Cancel
                         </button>
@@ -116,13 +116,13 @@ export default function PrescriptionDataViewer({ data, onSave }: PrescriptionDat
                     <>
                         <button
                             onClick={() => setIsEditing(true)}
-                            className="px-4 text-content  p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200  "
+                            className="px-4   p-2 rounded-md hover:bg-cyan/20 hover:text-dark transition-colors ease-in-out duration-200 bg-cyan/40 text-primary   "
                         >
                             Edit
                         </button>
                         <button
                             onClick={() => handleSave()}
-                            className="px-4 text-content  p-2 rounded-md hover:bg-light/20 hover:text-light transition-colors ease-in-out duration-200  "
+                            className="px-4   p-2 rounded-md hover:bg-cyan/20 hover:text-dark transition-colors ease-in-out duration-200 bg-cyan/40 text-primary  "
                         >
                             Save
                         </button>
